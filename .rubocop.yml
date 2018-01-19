@@ -1,0 +1,35 @@
+AllCops:
+  TargetRubyVersion: 2.3
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+    - 'bin/**/*'
+    - 'tasks/release.rake'
+    - '*.gemspec'
+    - 'Gemfile'
+    - 'Rakefile'
+
+Metrics/LineLength:
+  Max: 115
+
+Style/SpecialGlobalVars:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  ConsistentQuotesInMultiline: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/ModuleFunction:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/MutableConstant:
+  Enabled: false
