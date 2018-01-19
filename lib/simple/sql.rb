@@ -97,7 +97,59 @@ module Simple
     end
 
     def connection
-      ActiveRecord::Base.connection.raw_connection
+      @connector.call
+    end
+
+    def connector=(connector)
+      @connector = connector
+    end
+
+    self.connector = lambda { 
+      connect_to_active_record
+    }
+
+    def connect_to_active_record
+      return ActiveRecord::Base.connection.raw_connection if defined?(ActiveRecord)
+
+      STDERR.puts <<-SQL
+simple-sql works out of the box with ActiveRecord-based postgres connections.
+
+To use it without ActiveRecord you must connect to a database via
+
+    Simple::SQL.connect!("postgresql://username:password@dbhost:port/dbname").
+SQL
+
+      raise ArgumentError, "simple-sql: missing connection"
+    end
+
+    public
+
+    def connect!(url)
+      require "pg"
+
+      config = db_config_from_url(url)
+      connection = PG::Connection.new(config)
+      self.connector = lambda { connection }
+    end
+
+    def db_config_from_url(url)
+      require "uri"
+
+      raise ArgumentError, "Invalid URL #{url.inspect}" unless url.is_a?(String)
+      raise ArgumentError, "Invalid URL #{url.inspect}" unless url =~ /^postgres(ql)?s?:\/\//
+
+      uri = URI.parse(url)
+      raise ArgumentError, "Invalid URL #{url}" unless uri.hostname && uri.path
+
+      config = {
+        dbname: uri.path.sub(%r{^/}, ""),
+        host:   uri.hostname
+      }
+      config[:port] = uri.port if uri.port
+      config[:user] = uri.user if uri.user
+      config[:password] = uri.password if uri.password
+      config[:sslmode] = uri.scheme == "postgress" || uri.scheme == "postgresqls" ? "require" : "prefer"
+      config
     end
   end
 end

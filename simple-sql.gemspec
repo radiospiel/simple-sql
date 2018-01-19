@@ -27,12 +27,13 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '~> 2.3'
 
-  gem.add_dependency 'activerecord', '~> 4'
   gem.add_dependency 'pg_array_parser', '~> 0'
+  gem.add_dependency 'pg', '~> 0.20'
 
   # optional gems (required by some of the parts)
 
   # development gems
+  gem.add_development_dependency 'activerecord', '~> 4'
   gem.add_development_dependency 'pg', '0.20'
   gem.add_development_dependency 'rake', '~> 11'
   gem.add_development_dependency 'rspec', '~> 3.7'
