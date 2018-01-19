@@ -1,11 +1,17 @@
 require_relative "sql/version.rb"
 require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
+require_relative "sql/config.rb"
+
+require "logger"
 
 module Simple
   # The Simple::SQL module
   module SQL
     extend self
+
+    attr_accessor :logger
+    self.logger = Logger.new(STDERR)
 
     # execute one or more sql statements. This method does not allow to pass in
     # arguments - since the pg client does not support this - but it allows to
@@ -112,11 +118,8 @@ module Simple
       return ActiveRecord::Base.connection.raw_connection if defined?(ActiveRecord)
 
       STDERR.puts <<-SQL
-simple-sql works out of the box with ActiveRecord-based postgres connections.
-
-To use it without ActiveRecord you must connect to a database via
-
-    Simple::SQL.connect!("postgresql://username:password@dbhost:port/dbname").
+Simple::SQL works out of the box with ActiveRecord-based postgres connections, reusing the current connection.
+To use without ActiveRecord you must connect to a database via Simple::SQL.connect!.
 SQL
 
       raise ArgumentError, "simple-sql: missing connection"
@@ -124,32 +127,19 @@ SQL
 
     public
 
-    def connect!(url)
-      require "pg"
+    # connects to the database specified via the url parameter. If called
+    # without argument it tries to determine a DATABASE_URL from either the
+    # environment setting (DATABASE_URL) or from a config/database.yml file,
+    # taking into account the RAILS_ENV and RACK_ENV settings.
+    def connect!(database_url = :auto)
+      database_url = Config.determine_url if database_url == :auto
 
-      config = db_config_from_url(url)
+      logger.info "Connecting to #{database_url}"
+      config = Config.parse_url(database_url)
+
+      require "pg"
       connection = PG::Connection.new(config)
       self.connector = lambda { connection }
-    end
-
-    def db_config_from_url(url)
-      require "uri"
-
-      raise ArgumentError, "Invalid URL #{url.inspect}" unless url.is_a?(String)
-      raise ArgumentError, "Invalid URL #{url.inspect}" unless url =~ /^postgres(ql)?s?:\/\//
-
-      uri = URI.parse(url)
-      raise ArgumentError, "Invalid URL #{url}" unless uri.hostname && uri.path
-
-      config = {
-        dbname: uri.path.sub(%r{^/}, ""),
-        host:   uri.hostname
-      }
-      config[:port] = uri.port if uri.port
-      config[:user] = uri.user if uri.user
-      config[:password] = uri.password if uri.password
-      config[:sslmode] = uri.scheme == "postgress" || uri.scheme == "postgresqls" ? "require" : "prefer"
-      config
     end
   end
 end
