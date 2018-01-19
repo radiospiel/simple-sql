@@ -3,6 +3,7 @@ require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
 require_relative "sql/transactions.rb"
+require_relative "sql/logging.rb"
 
 require "logger"
 
@@ -18,8 +19,11 @@ module Simple
     # execute one or more sql statements. This method does not allow to pass in
     # arguments - since the pg client does not support this - but it allows to
     # run multiple sql statements separated by ";"
-    extend Forwardable
-    delegate exec: :pg
+    def exec(sql)
+      Logging.yield_logged sql do
+        connection.exec sql
+      end
+    end
 
     # Runs a query, with optional arguments, and returns the result. If the SQL
     # query returns rows with one column, this method returns an array of these
@@ -36,7 +40,7 @@ module Simple
     # end
 
     def all(sql, *args, &block)
-      result  = connection.exec_params(sql, Encoder.encode_args(args))
+      result  = exec_logged(sql, *args)
       decoder = Decoder.new(result)
 
       enumerate(result, decoder, block)
@@ -70,7 +74,7 @@ module Simple
     # end
 
     def records(sql, *args, into: Hash, &block)
-      result  = connection.exec_params(sql, Encoder.encode_args(args))
+      result  = exec_logged(sql, *args)
       decoder = Decoder.new(result, :record, into: into)
 
       enumerate(result, decoder, block)
@@ -85,6 +89,12 @@ module Simple
     end
 
     private
+
+    def exec_logged(sql, *args)
+      Logging.yield_logged sql, *args do
+        connection.exec_params(sql, Encoder.encode_args(args))
+      end
+    end
 
     def enumerate(result, decoder, block)
       if block
