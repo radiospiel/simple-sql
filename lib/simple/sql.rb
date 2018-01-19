@@ -2,6 +2,7 @@ require_relative "sql/version.rb"
 require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
+require_relative "sql/transactions.rb"
 
 require "logger"
 
@@ -9,6 +10,7 @@ module Simple
   # The Simple::SQL module
   module SQL
     extend self
+    extend Transactions
 
     attr_accessor :logger
     self.logger = Logger.new(STDERR)
