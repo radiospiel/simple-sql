@@ -54,7 +54,7 @@ namespace :release do
     Dir.chdir(GEM_ROOT) do
       version = VersionNumberTracker.version
       sh("git add #{VERSION_FILE_PATH}")
-      sh("git commit -m \"bump auth to v#{version}\"")
+      sh("git commit -m \"bump to v#{version}\"")
       sh("git tag -a v#{version} -m \"Tag\"")
     end
   end
