@@ -2,8 +2,8 @@ require_relative "sql/version.rb"
 require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
-require_relative "sql/transactions.rb"
 require_relative "sql/logging.rb"
+require_relative "sql/connection.rb"
 
 require "logger"
 
@@ -11,7 +11,6 @@ module Simple
   # The Simple::SQL module
   module SQL
     extend self
-    extend Transactions
 
     attr_accessor :logger
     self.logger = Logger.new(STDERR)
@@ -88,6 +87,9 @@ module Simple
       end
     end
 
+    extend Forwardable
+    delegate :transaction => :connection
+
     private
 
     def exec_logged(sql, *args)
@@ -127,7 +129,7 @@ module Simple
     }
 
     def connect_to_active_record
-      return ActiveRecord::Base.connection.raw_connection if defined?(ActiveRecord)
+      return Connection.new(ActiveRecord::Base.connection) if defined?(ActiveRecord)
 
       STDERR.puts <<-SQL
 Simple::SQL works out of the box with ActiveRecord-based postgres connections, reusing the current connection.
@@ -150,7 +152,7 @@ SQL
       config = Config.parse_url(database_url)
 
       require "pg"
-      connection = PG::Connection.new(config)
+      connection = Connection.new(PG::Connection.new(config))
       self.connector = lambda { connection }
     end
   end
