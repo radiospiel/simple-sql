@@ -9,6 +9,12 @@ module Simple::SQL::Decoder
     end
   end
 
+  def parse_timestamp(s)
+    r = ::Time.parse(s)
+    return r if r.utc_offset == 0
+    Time.gm(r.year, r.mon, r.day, r.hour, r.min, r.sec)
+  end
+
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/CyclomaticComplexity
   # rubocop:disable Metrics/MethodLength
@@ -22,7 +28,7 @@ module Simple::SQL::Decoder
     when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
     when :"character varying[]"         then parse_pg_array(s)
     when :"text[]"                      then parse_pg_array(s)
-    when :"timestamp without time zone" then ::Time.parse(s)
+    when :"timestamp without time zone" then parse_timestamp(s)
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
