@@ -32,7 +32,11 @@ module Simple::SQL::Decoder
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
-    else                                s # unknown value, we just return the string here.
+    when :boolean                       then s == "t"
+    else
+      # unknown value, we just return the string here.
+      # STDERR.puts "unknown type: #{type.inspect}"
+      s 
     end
   end
   # rubocop:enable Metrics/AbcSize
