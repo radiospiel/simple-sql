@@ -122,6 +122,13 @@ transactions, so you might be able to rollback from inside a nested transaction)
 
 When connecting via `Simple::SQL.connect!` we do not support the same level of nesting support (yet). You can still nest transactions, but raising an error terminates *all* current transactions. 
 
+## Logging
+
+`simple-sql` builds a logger which logs all queries. The logger, by default, is
+created to write to STDERR; to get another logger use code like
+
+    Simple::SQL.logger = Rails.logger
+
 ## Bugs and Limitations
 
 ### 1. Multiple connections
