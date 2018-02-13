@@ -88,7 +88,7 @@ module Simple
     end
 
     extend Forwardable
-    delegate :transaction => :connection
+    delegate [:transaction, :wait_for_notify] => :connection
 
     private
 

@@ -16,7 +16,7 @@ module Simple::SQL::Connection
     end
 
     extend Forwardable
-    delegate %w(exec_params exec escape) => :@raw_connection
+    delegate %w(exec_params exec escape wait_for_notify) => :@raw_connection
 
     def transaction(&block)
       raise ArgumentError, "Implementation missing for #transaction"
