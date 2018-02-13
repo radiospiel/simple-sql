@@ -25,6 +25,7 @@ module Simple::SQL::Decoder
     when :integer                       then Integer(s)
     when :bigint                        then Integer(s)
     when :numeric                       then Float(s)
+    when :"double precision"            then Float(s)
     when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
     when :"character varying[]"         then parse_pg_array(s)
     when :"text[]"                      then parse_pg_array(s)
