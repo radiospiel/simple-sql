@@ -9,10 +9,6 @@ describe "Simple::SQL.record" do
 
   let!(:users) { 1.upto(USER_COUNT).map { create(:user) } }
 
-  before do
-    expect(User.count).to eq(2)
-  end
-
   it "calls the database" do
     r = Simple::SQL.record("SELECT COUNT(*) AS count FROM users")
     expect(r).to eq({count: 2}) 

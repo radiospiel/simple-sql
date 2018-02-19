@@ -32,5 +32,7 @@ ActiveRecord::Schema.define do
     t.string    :last_name
     t.hstore    :meta_data
     t.column    :access_level, :access_level
+
+    t.timestamps
   end
 end

@@ -7,7 +7,7 @@ ENV["RACK_ENV"] = "test"
 ENV["RAILS_ENV"] = "test"
 
 require "rspec"
-
+require "awesome_print"
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/sql"

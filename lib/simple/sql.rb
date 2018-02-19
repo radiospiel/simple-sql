@@ -8,6 +8,7 @@ require_relative "sql/config.rb"
 require_relative "sql/logging.rb"
 require_relative "sql/connection.rb"
 require_relative "sql/reflection.rb"
+require_relative "sql/insert.rb"
 
 module Simple
   # The Simple::SQL module
