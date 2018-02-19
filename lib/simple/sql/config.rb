@@ -1,3 +1,8 @@
+# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/CyclomaticComplexity
+# rubocop:disable Metrics/MethodLength
+# rubocop:disable Metrics/PerceivedComplexity
+
 # private
 module Simple::SQL::Config
   extend self
@@ -33,10 +38,10 @@ module Simple::SQL::Config
 
   def database_url_from_database_yml
     abc = read_database_yml
-    username, password, host, port, database, password = abc.values_at "username", "password", "host", "port", "database", "password"
+    username, password, host, port, database = abc.values_at "username", "password", "host", "port", "database"
 
-    username_and_password = [ username, password ].compact.join(":")
-    host_and_port = [ host, port ].compact.join(":")
+    username_and_password = [username, password].compact.join(":")
+    host_and_port = [host, port].compact.join(":")
     "postgres://#{username_and_password}@#{host_and_port}/#{database}"
   end
 
@@ -46,7 +51,7 @@ module Simple::SQL::Config
     env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||
-    database_config["defaults"] ||
-    raise("Invalid or missing database configuration in config/database.yml for #{env.inspect} environment")
+      database_config["defaults"] ||
+      raise("Invalid or missing database configuration in config/database.yml for #{env.inspect} environment")
   end
 end

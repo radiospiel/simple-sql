@@ -37,7 +37,7 @@ module Simple::SQL::Decoder
     else
       # unknown value, we just return the string here.
       # STDERR.puts "unknown type: #{type.inspect}"
-      s 
+      s
     end
   end
   # rubocop:enable Metrics/AbcSize

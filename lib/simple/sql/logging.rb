@@ -1,17 +1,20 @@
+# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/LineLength
+
 module Simple
   module SQL
     module Logging
       extend self
 
-      def yield_logged(sql, *args, &block)
+      def yield_logged(sql, *args, &_block)
         r0 = Time.now
         rv = yield
         realtime = Time.now - r0
-        ::Simple::SQL.logger.debug "[sql] %.3f secs: %s" % [ realtime, format_query(sql, *args) ]
+        ::Simple::SQL.logger.debug "[sql] %.3f secs: %s" % [realtime, format_query(sql, *args)]
         rv
-      rescue => e
+      rescue StandardError => e
         realtime = Time.now - r0
-        ::Simple::SQL.logger.warn "[sql] %.3f secs: %s:\n\tfailed with error %s" % [ realtime, format_query(sql, *args), e.message ]
+        ::Simple::SQL.logger.warn "[sql] %.3f secs: %s:\n\tfailed with error %s" % [realtime, format_query(sql, *args), e.message]
         raise
       end
 
@@ -26,4 +29,3 @@ module Simple
     end
   end
 end
-

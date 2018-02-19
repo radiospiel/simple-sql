@@ -1,3 +1,6 @@
+# rubocop:disable Metrics/MethodLength
+# rubocop:disable Style/IfUnlessModifier
+
 # private
 module Simple::SQL::Connection
   def self.new(connection)
@@ -18,7 +21,7 @@ module Simple::SQL::Connection
     extend Forwardable
     delegate %w(exec_params exec escape wait_for_notify) => :@raw_connection
 
-    def transaction(&block)
+    def transaction(&_block)
       raise ArgumentError, "Implementation missing for #transaction"
     end
   end
@@ -31,9 +34,9 @@ module Simple::SQL::Connection
 
     private
 
-    def transaction(&block)
-      # Notes: by using "ensure" (as opposed to rescue) we are rolling back 
-      # both when an exception was raised and when a value was thrown. This 
+    def transaction(&_block)
+      # Notes: by using "ensure" (as opposed to rescue) we are rolling back
+      # both when an exception was raised and when a value was thrown. This
       # also means we have to track whether or not to rollback. i.e. do roll
       # back when we yielded to &block but not otherwise.
       #
@@ -71,6 +74,6 @@ module Simple::SQL::Connection
       @connection = connection
     end
 
-    delegate :transaction => :@connection
+    delegate [:transaction] => :@connection
   end
 end

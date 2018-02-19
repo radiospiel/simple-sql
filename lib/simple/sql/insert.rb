@@ -1,11 +1,19 @@
+# rubocop:disable Style/ClassVars
+# rubocop:disable Metrics/AbcSize
+
 module Simple
   module SQL
-    # Inse
     def insert(table, records)
       if records.is_a?(Hash)
-        return insert(table, [records]).first
+        insert_many(table, [records]).first
+      else
+        insert_many table, records
       end
+    end
 
+    private
+
+    def insert_many(table, records)
       return [] if records.empty?
 
       inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys)
@@ -32,20 +40,20 @@ module Simple
         vals = []
 
         cols += columns
-        vals += columns.each_with_index.map { |_, idx| "$#{idx+1}" }
+        vals += columns.each_with_index.map { |_, idx| "$#{idx + 1}" }
 
         timestamp_columns = timestamp_columns_in_table(table_name) - columns.map(&:to_s)
 
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        @sql = "INSERT INTO #{table_name} (#{cols.join(",")}) VALUES(#{vals.join(",")}) RETURNING id"
+        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) RETURNING id"
       end
 
       # timestamp_columns are columns that will be set to the current time when
       # inserting a record. This includes:
       #
-      # - inserted_at (for Ecto) 
+      # - inserted_at (for Ecto)
       # - created_at (for ActiveRecord)
       # - updated_at (for Ecto and ActiveRecord)
       def timestamp_columns_in_table(table_name)
@@ -53,7 +61,7 @@ module Simple
         columns_for_table & %w(inserted_at created_at updated_at)
       end
 
-      def insert(records: records)
+      def insert(records:)
         SQL.transaction do
           records.map do |record|
             SQL.ask @sql, *record.values_at(*@columns)

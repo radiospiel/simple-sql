@@ -1,3 +1,5 @@
+# rubocop:disable Metrics/MethodLength
+
 module Simple
   module SQL
     module Reflection
@@ -7,20 +9,17 @@ module Simple
       delegate [:ask, :all, :records, :record] => ::Simple::SQL
 
       def tables(schema: "public")
-        if schema == "public"
-          sql = <<~SQL
-            SELECT table_name AS name, *
-            FROM information_schema.tables
-            WHERE table_schema=$1
+        select = if schema == "public"
+                   "table_name AS name, *"
+                 else
+                   "table_schema || '.' || table_name AS name, *"
+                 end
+
+        records = ::Simple::SQL.records <<~SQL, schema
+          SELECT #{select}
+          FROM information_schema.tables
+          WHERE table_schema=$1
           SQL
-        else
-          sql = <<~SQL
-            SELECT table_schema || '.' || table_name AS name, *
-            FROM information_schema.tables
-            WHERE table_schema=$1
-          SQL
-        end
-        records = ::Simple::SQL.records sql, schema
         records_by_attr(records, :name)
       end
 
@@ -42,9 +41,9 @@ module Simple
       def parse_table_name(table_name)
         p1, p2 = table_name.split(".", 2)
         if p2
-          [ p1, p2 ]
+          [p1, p2]
         else
-          [ "public", p1 ]
+          ["public", p1]
         end
       end
 

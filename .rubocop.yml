@@ -33,3 +33,27 @@ Style/Documentation:
 
 Style/MutableConstant:
   Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Style/FormatString:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  Enabled: false
+
+Lint/MissingCopEnableDirective:
+  Enabled: false
+
+Style/NumericPredicate:
+  Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false

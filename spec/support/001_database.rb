@@ -33,6 +33,6 @@ ActiveRecord::Schema.define do
     t.hstore    :meta_data
     t.column    :access_level, :access_level
 
-    t.timestamps
+    t.timestamps null: true
   end
 end
