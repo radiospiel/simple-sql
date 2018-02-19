@@ -2,10 +2,10 @@ require "spec_helper"
 
 describe "Simple::SQL.insert" do
   USER_COUNT = 2
-  SQL = Simple::SQL
+  SQL = SQL
 
   def expects(expected_result, sql, *args)
-    expect(Simple::SQL.record(sql, *args)).to eq(expected_result)
+    expect(SQL.record(sql, *args)).to eq(expected_result)
   end
 
   let!(:users) { 1.upto(USER_COUNT).map { create(:user) } }
@@ -24,8 +24,8 @@ describe "Simple::SQL.insert" do
     expect(user.created_at).to be_a(Time)
 
     #
-    # r = Simple::SQL.record("SELECT COUNT(*) AS count FROM users")
-    # r = Simple::SQL.record("SELECT COUNT(*) AS count FROM users")
+    # r = SQL.record("SELECT COUNT(*) AS count FROM users")
+    # r = SQL.record("SELECT COUNT(*) AS count FROM users")
     # expect(r).to eq({count: 2})
   end
 end

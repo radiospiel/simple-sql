@@ -7,14 +7,20 @@ module Simple
       delegate [:ask, :all, :records, :record] => ::Simple::SQL
 
       def tables(schema: "public")
-        records = ::Simple::SQL.records <<~SQL, schema
-          SELECT
-            table_schema || '.' || table_name AS name,
-            *
-          FROM information_schema.tables
-          WHERE table_schema=$1
-        SQL
-
+        if schema == "public"
+          sql = <<~SQL
+            SELECT table_name AS name, *
+            FROM information_schema.tables
+            WHERE table_schema=$1
+          SQL
+        else
+          sql = <<~SQL
+            SELECT table_schema || '.' || table_name AS name, *
+            FROM information_schema.tables
+            WHERE table_schema=$1
+          SQL
+        end
+        records = ::Simple::SQL.records sql, schema
         records_by_attr(records, :name)
       end
 
