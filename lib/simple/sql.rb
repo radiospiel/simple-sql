@@ -1,11 +1,13 @@
+require "forwardable"
+require "logger"
+
 require_relative "sql/version.rb"
 require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
 require_relative "sql/logging.rb"
 require_relative "sql/connection.rb"
-
-require "logger"
+require_relative "sql/reflection.rb"
 
 module Simple
   # The Simple::SQL module
