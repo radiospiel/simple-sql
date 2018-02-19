@@ -1,8 +1,6 @@
 require "spec_helper"
 
 describe "Simple::SQL.ask" do
-  USER_COUNT = 2
-
   def expects(expected_result, sql, *args)
     expect(SQL.ask(sql, *args)).to eq(expected_result)
   end

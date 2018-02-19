@@ -13,6 +13,9 @@ Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 require "simple/sql"
 
 SQL = Simple::SQL
+USER_COUNT = 2
+
+ActiveRecord::Base.logger.level = Logger::INFO
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true

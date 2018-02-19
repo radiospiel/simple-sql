@@ -1,9 +1,6 @@
 require "spec_helper"
 
 describe "Simple::SQL.insert" do
-  USER_COUNT = 2
-  SQL = SQL
-
   def expects(expected_result, sql, *args)
     expect(SQL.record(sql, *args)).to eq(expected_result)
   end
