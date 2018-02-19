@@ -16,7 +16,24 @@ module Simple
     extend self
 
     attr_accessor :logger
-    self.logger = Logger.new(STDERR)
+
+    def logger
+      @logger ||= default_logger
+    end
+
+    def logger=(logger)
+      @logger = logger
+    end
+
+    def default_logger
+      if defined?(ActiveRecord)
+        ActiveRecord::Base.logger
+      else
+        logger = Logger.new(STDERR)
+        logger.level = Logger::INFO
+        logger
+      end
+    end
 
     # execute one or more sql statements. This method does not allow to pass in
     # arguments - since the pg client does not support this - but it allows to
