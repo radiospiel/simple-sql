@@ -1,7 +1,15 @@
-adapter: postgresql
-encoding: utf8
-host: '127.0.0.1'
-username: postgres
-pool: 5
-timeout: 5000
-database: simple-sql-test
+defaults: &defaults
+  adapter: postgresql
+  encoding: utf8
+  host: '127.0.0.1'
+  username: postgres
+  pool: 5
+  timeout: 5000
+
+test:
+  <<: *defaults
+  database: simple-sql-test
+
+development:
+  <<: *defaults
+  database: simple-sql

@@ -1,7 +1,8 @@
 # connect to the database and setup the schema
 require "active_record"
-
-ActiveRecord::Base.establish_connection(YAML.load_file("config/database.yml"))
+require "yaml"
+abc = YAML.load_file("config/database.yml")
+ActiveRecord::Base.establish_connection(abc["test"])
 
 # Remove after migration to Rails 5
 ActiveRecord::Base.raise_in_transactional_callbacks = true

@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+$: << "lib"
+require "simple/sql"
+
+SQL = Simple::SQL
+SQL.connect!
+
+def reload!
+  $VERBOSE = nil
+  Dir.glob("lib/simple/sql/**/*.rb").sort.each do |path|
+    STDERR.puts path
+    load path
+  end 
+end
+
+require "irb"
+IRB.start
