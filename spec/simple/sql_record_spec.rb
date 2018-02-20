@@ -1,10 +1,6 @@
 require "spec_helper"
 
 describe "Simple::SQL.record" do
-  def expects(expected_result, sql, *args)
-    expect(SQL.record(sql, *args)).to eq(expected_result)
-  end
-
   let!(:users) { 1.upto(USER_COUNT).map { create(:user) } }
 
   it "calls the database" do
