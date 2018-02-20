@@ -15,11 +15,6 @@ describe "Simple::SQL.insert" do
     expect(user.first_name).to eq("foo")
     expect(user.last_name).to eq("bar")
     expect(user.created_at).to be_a(Time)
-
-    #
-    # r = SQL.record("SELECT COUNT(*) AS count FROM users")
-    # r = SQL.record("SELECT COUNT(*) AS count FROM users")
-    # expect(r).to eq({count: 2})
   end
 end
 

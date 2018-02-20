@@ -10,24 +10,24 @@ describe "Simple::SQL.duplicate" do
   end
 
   it "does not fail on a non-existing user" do
-    dupe_ids = SQL.duplicate "users", source_ids.first
+    dupe_ids = SQL.duplicate "users", -1
 
-    expect(dupe_ids.length).to eq(1)
-    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(3)
+    expect(dupe_ids.length).to eq(0)
+    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(USER_COUNT)
   end
 
   it "duplicates a single user" do
     dupe_ids = SQL.duplicate "users", source_ids.first
 
     expect(dupe_ids.length).to eq(1)
-    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(3)
+    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(1 + USER_COUNT)
   end
 
   it "duplicates many users" do
     dupe_ids = SQL.duplicate "users", (source_ids + [ -10 ])
 
     expect(dupe_ids.length).to eq(2)
-    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(4)
+    expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(2 + USER_COUNT)
   end
 
   it "updates the timestamp columns" do
