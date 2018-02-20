@@ -79,6 +79,7 @@ module Simple
 
       def records_by_attr(records, attr)
         records.inject({}) do |hsh, record|
+          record.reject! { |_k, v| v.nil? }
           hsh.update record[attr] => OpenStruct.new(record)
         end
       end
