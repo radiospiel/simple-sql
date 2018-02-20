@@ -42,23 +42,12 @@ module Simple
         cols += columns
         vals += columns.each_with_index.map { |_, idx| "$#{idx + 1}" }
 
-        timestamp_columns = timestamp_columns_in_table(table_name) - columns.map(&:to_s)
+        timestamp_columns = SQL::Reflection.timestamp_columns(table_name) - columns.map(&:to_s)
 
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
         @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) RETURNING id"
-      end
-
-      # timestamp_columns are columns that will be set to the current time when
-      # inserting a record. This includes:
-      #
-      # - inserted_at (for Ecto)
-      # - created_at (for ActiveRecord)
-      # - updated_at (for Ecto and ActiveRecord)
-      def timestamp_columns_in_table(table_name)
-        columns_for_table = SQL::Reflection.columns(table_name).keys
-        columns_for_table & %w(inserted_at created_at updated_at)
       end
 
       def insert(records:)
