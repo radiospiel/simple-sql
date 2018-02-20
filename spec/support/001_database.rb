@@ -35,4 +35,13 @@ ActiveRecord::Schema.define do
 
     t.timestamps null: true
   end
+
+  create_table :unique_users, force: true do |t|
+    t.string    :first_name
+    t.string    :last_name
+  end
+
+  execute <<-SQL
+  CREATE UNIQUE INDEX unique_users_ix1 ON unique_users(first_name, last_name)
+  SQL
 end
