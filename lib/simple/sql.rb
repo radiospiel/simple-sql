@@ -16,8 +16,6 @@ module Simple
   module SQL
     extend self
 
-    attr_accessor :logger
-
     def logger
       @logger ||= default_logger
     end
