@@ -48,7 +48,9 @@ module Simple
       # all values in there are SQL::Fragments
       def validated_overrides(overrides)
         overrides.inject({}) do |hsh, (key, value)|
-          raise ArgumentError, "Unknown value #{value.inspect}" unless value.is_a?(Fragment)
+          unless value.is_a?(Fragment)
+            raise ArgumentError, "Pass in override values via SQL.fragment (for #{value.inspect})"
+          end
           hsh.update key.to_s => value.to_sql
         end
       end

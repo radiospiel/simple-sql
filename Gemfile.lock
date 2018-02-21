@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple-sql (0.3.2)
+    simple-sql (0.2.10)
       pg (~> 0.20)
       pg_array_parser (~> 0)
 
