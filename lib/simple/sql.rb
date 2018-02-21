@@ -25,13 +25,12 @@ module Simple
     end
 
     def default_logger
-      if defined?(ActiveRecord)
-        ActiveRecord::Base.logger
-      else
-        logger = Logger.new(STDERR)
-        logger.level = Logger::INFO
-        logger
-      end
+      logger = ActiveRecord::Base.logger if defined?(ActiveRecord)
+      return logger if logger
+
+      logger = Logger.new(STDERR)
+      logger.level = Logger::INFO
+      logger
     end
 
     # execute one or more sql statements. This method does not allow to pass in

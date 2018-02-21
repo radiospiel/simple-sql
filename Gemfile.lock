@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple-sql (0.2.6)
+    simple-sql (0.3.2)
       pg (~> 0.20)
       pg_array_parser (~> 0)
 
@@ -90,4 +90,4 @@ DEPENDENCIES
   simplecov (~> 0)
 
 BUNDLED WITH
-   1.13.6
+   1.16.1
