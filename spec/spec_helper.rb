@@ -12,6 +12,11 @@ Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/sql"
 
+unless ENV["USE_ACTIVE_RECORD"]
+  Simple::SQL.connect!
+  Simple::SQL.ask "DELETE FROM users"
+end
+
 SQL = Simple::SQL
 USER_COUNT = 2
 
@@ -21,6 +26,10 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run focus: (ENV["CI"] != "true")
   config.expect_with(:rspec) { |c| c.syntax = :expect }
-  config.include FactoryGirl::Syntax::Methods
   config.order = "random"
+  config.around(:each) do |example|
+    Simple::SQL.ask "DELETE FROM users"
+    Simple::SQL.ask "DELETE FROM unique_users"
+    example.run
+  end
 end
