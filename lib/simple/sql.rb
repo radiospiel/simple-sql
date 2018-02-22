@@ -147,12 +147,12 @@ module Simple
     }
 
     def connect_to_active_record
-      return Connection.new(ActiveRecord::Base.connection) if defined?(ActiveRecord)
+      return Connection.active_record_connection if defined?(ActiveRecord)
 
       STDERR.puts <<~SQL
         Simple::SQL works out of the box with ActiveRecord-based postgres connections, reusing the current connection.
         To use without ActiveRecord you must connect to a database via Simple::SQL.connect!.
-SQL
+      SQL
 
       raise ArgumentError, "simple-sql: missing connection"
     end
@@ -170,7 +170,7 @@ SQL
       config = Config.parse_url(database_url)
 
       require "pg"
-      connection = Connection.new(PG::Connection.new(config))
+      connection = Connection.pg_connection(PG::Connection.new(config))
       self.connector = lambda { connection }
     end
   end

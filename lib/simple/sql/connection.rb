@@ -3,32 +3,20 @@
 
 # private
 module Simple::SQL::Connection
-  def self.new(connection)
-    if defined?(ActiveRecord)
-      if connection.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
-        return ActiveRecordConnection.new(connection)
-      end
-    end
-
-    SimpleConnection.new(connection)
+  def self.active_record_connection
+    ActiveRecordConnection
   end
 
-  class RawConnection
-    def initialize(raw_connection)
-      @raw_connection = raw_connection
-    end
+  def self.pg_connection(connection)
+    PgConnection.new(connection)
+  end
 
+  class PgConnection
     extend Forwardable
     delegate %w(exec_params exec escape wait_for_notify) => :@raw_connection
 
-    def transaction(&_block)
-      raise ArgumentError, "Implementation missing for #transaction"
-    end
-  end
-
-  class SimpleConnection < RawConnection
     def initialize(raw_connection)
-      super(raw_connection)
+      @raw_connection = raw_connection
       @tx_nesting_level = 0
     end
 
@@ -68,12 +56,19 @@ module Simple::SQL::Connection
     end
   end
 
-  class ActiveRecordConnection < RawConnection
-    def initialize(connection)
-      super(connection.raw_connection)
-      @connection = connection
+  module ActiveRecordConnection
+    extend self
+
+    extend Forwardable
+    delegate %w(exec_params exec escape wait_for_notify) => :raw_connection
+    delegate [:transaction] => :connection
+
+    def raw_connection
+      connection.raw_connection
     end
 
-    delegate [:transaction] => :@connection
+    def connection
+      ActiveRecord::Base.connection
+    end
   end
 end
