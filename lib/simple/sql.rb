@@ -159,6 +159,14 @@ module Simple
 
     public
 
+    # returns a configuration hash, either from the passed in database URL,
+    # from a DATABASE_URL environment value, or from the config/database.yml
+    # file.
+    def configuration(database_url = :auto)
+      database_url = Config.determine_url if database_url == :auto
+      Config.parse_url(database_url)
+    end
+
     # connects to the database specified via the url parameter. If called
     # without argument it tries to determine a DATABASE_URL from either the
     # environment setting (DATABASE_URL) or from a config/database.yml file,
