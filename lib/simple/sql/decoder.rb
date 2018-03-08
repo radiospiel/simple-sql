@@ -1,3 +1,5 @@
+require "time"
+
 # private
 module Simple::SQL::Decoder
   extend self
