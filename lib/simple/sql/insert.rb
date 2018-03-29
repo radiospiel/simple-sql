@@ -1,22 +1,27 @@
 # rubocop:disable Style/ClassVars
 # rubocop:disable Metrics/AbcSize
-
+# rubocop:disable Metrics/LineLength
 module Simple
   module SQL
-    def insert(table, records)
+    #
+    # - table_name - the name of the table
+    # - records - a single hash of attributes or an array of hashes of attributes
+    # - handle_conflict - uses a postgres ON CONFLICT clause to ignore insert conflicts if true
+    #
+    def insert(table, records, handle_conflict: false)
       if records.is_a?(Hash)
-        insert_many(table, [records]).first
+        insert_many(table, [records], handle_conflict).first
       else
-        insert_many table, records
+        insert_many(table, records, handle_conflict)
       end
     end
 
     private
 
-    def insert_many(table, records)
+    def insert_many(table, records, handle_conflict)
       return [] if records.empty?
 
-      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys)
+      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys, handle_conflict: handle_conflict)
       inserter.insert(records: records)
     end
 
@@ -25,15 +30,15 @@ module Simple
 
       @@inserters = {}
 
-      def self.create(table_name:, columns:)
-        @@inserters[[table_name, columns]] ||= new(table_name: table_name, columns: columns)
+      def self.create(table_name:, columns:, handle_conflict:)
+        @@inserters[[table_name, columns, handle_conflict]] ||= new(table_name: table_name, columns: columns, handle_conflict: handle_conflict)
       end
 
       #
       # - table_name - the name of the table
       # - columns - name of columns, as Array[String] or Array[Symbol]
       #
-      def initialize(table_name:, columns:)
+      def initialize(table_name:, columns:, handle_conflict:)
         @columns = columns
 
         cols = []
@@ -47,7 +52,9 @@ module Simple
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) RETURNING id"
+        confict_handling = handle_conflict ? " ON CONFLICT DO NOTHING " : ""
+
+        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling} RETURNING id"
       end
 
       def insert(records:)
