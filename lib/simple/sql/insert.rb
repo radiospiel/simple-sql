@@ -6,22 +6,22 @@ module Simple
     #
     # - table_name - the name of the table
     # - records - a single hash of attributes or an array of hashes of attributes
-    # - handle_conflict - uses a postgres ON CONFLICT clause to ignore insert conflicts if true
+    # - on_conflict - uses a postgres ON CONFLICT clause to ignore insert conflicts if true
     #
-    def insert(table, records, handle_conflict: false)
+    def insert(table, records, on_conflict: nil)
       if records.is_a?(Hash)
-        insert_many(table, [records], handle_conflict).first
+        insert_many(table, [records], on_conflict).first
       else
-        insert_many(table, records, handle_conflict)
+        insert_many(table, records, on_conflict)
       end
     end
 
     private
 
-    def insert_many(table, records, handle_conflict)
+    def insert_many(table, records, on_conflict)
       return [] if records.empty?
 
-      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys, handle_conflict: handle_conflict)
+      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys, on_conflict: on_conflict)
       inserter.insert(records: records)
     end
 
@@ -30,15 +30,15 @@ module Simple
 
       @@inserters = {}
 
-      def self.create(table_name:, columns:, handle_conflict:)
-        @@inserters[[table_name, columns, handle_conflict]] ||= new(table_name: table_name, columns: columns, handle_conflict: handle_conflict)
+      def self.create(table_name:, columns:, on_conflict:)
+        @@inserters[[table_name, columns, on_conflict]] ||= new(table_name: table_name, columns: columns, on_conflict: on_conflict)
       end
 
       #
       # - table_name - the name of the table
       # - columns - name of columns, as Array[String] or Array[Symbol]
       #
-      def initialize(table_name:, columns:, handle_conflict:)
+      def initialize(table_name:, columns:, on_conflict:)
         @columns = columns
 
         cols = []
@@ -52,9 +52,19 @@ module Simple
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        confict_handling = handle_conflict ? " ON CONFLICT DO NOTHING " : ""
+        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING id"
+      end
 
-        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling} RETURNING id"
+      CONFICT_HANDLING = {
+        nil      => "",
+        :nothing => "ON CONFLICT DO NOTHING",
+        :ignore  => "ON CONFLICT DO NOTHING"
+      }
+
+      def confict_handling(on_conflict)
+        CONFICT_HANDLING.fetch(on_conflict) do
+          raise(ArgumentError, "Invalid on_conflict value #{on_conflict.inspect}")
+        end
       end
 
       def insert(records:)
