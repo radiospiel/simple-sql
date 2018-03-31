@@ -40,9 +40,14 @@ module Simple::SQL::Config
     abc = read_database_yml
     username, password, host, port, database = abc.values_at "username", "password", "host", "port", "database"
 
+    # raise username.inspect
     username_and_password = [username, password].compact.join(":")
     host_and_port = [host, port].compact.join(":")
-    "postgres://#{username_and_password}@#{host_and_port}/#{database}"
+    if username_and_password != ""
+      "postgres://#{username_and_password}@#{host_and_port}/#{database}"
+    else
+      "postgres://#{host_and_port}/#{database}"
+    end
   end
 
   def read_database_yml

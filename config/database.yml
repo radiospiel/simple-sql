@@ -2,7 +2,7 @@ defaults: &defaults
   adapter: postgresql
   encoding: utf8
   host: '127.0.0.1'
-  username: postgres
+  # username: postgres
   pool: 5
   timeout: 5000
 
