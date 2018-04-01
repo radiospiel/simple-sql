@@ -6,6 +6,7 @@ module Simple::SQL::Decoder
 
   def new(result, into:)
     if into == Hash           then HashRecord.new(result)
+    elsif into == :struct     then StructRecord.new(result)
     elsif into                then Record.new(result, into: into)
     elsif result.nfields == 1 then SingleColumn.new(result)
     else                           MultiColumns.new(result)
@@ -127,5 +128,21 @@ class Simple::SQL::Decoder::Record < Simple::SQL::Decoder::HashRecord
 
   def decode(row)
     @into.new(super)
+  end
+end
+
+class Simple::SQL::Decoder::StructRecord < Simple::SQL::Decoder::MultiColumns
+  @@struct_cache = {}
+
+  def initialize(result)
+    super(result)
+
+    field_names = result.fields.map(&:to_sym)
+    @into = @@struct_cache[field_names] ||= Struct.new(*field_names)
+  end
+
+  def decode(row)
+    decoded_row = super(row)
+    @into.new(*decoded_row)
   end
 end
