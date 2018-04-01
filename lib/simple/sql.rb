@@ -11,6 +11,8 @@ require_relative "sql/reflection.rb"
 require_relative "sql/insert.rb"
 require_relative "sql/duplicate.rb"
 
+# rubocop:disable Metrics/MethodLength
+
 module Simple
   # The Simple::SQL module
   module SQL
@@ -56,11 +58,9 @@ module Simple
     #   # do something
     # end
 
-    def all(sql, *args, &block)
-      result  = exec_logged(sql, *args)
-      decoder = Decoder.new(result)
-
-      enumerate(result, decoder, block)
+    def all(sql, *args, into: nil, &block)
+      result = exec_logged(sql, *args)
+      enumerate(result, into: into, &block)
     end
 
     # Runs a query and returns the first result row of a query.
@@ -71,38 +71,23 @@ module Simple
     #   returns a number (or +nil+)
     # - <tt>Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"</tt>
     #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
-    def ask(sql, *args)
+    def ask(sql, *args, into: nil)
       catch(:ok) do
-        all(sql, *args) { |row| throw :ok, row }
+        all(sql, *args, into: into) { |row| throw :ok, row }
         nil
       end
     end
 
-    # Runs a query, with optional arguments, and returns the result as an
-    # array of Hashes.
-    #
-    # Example:
-    #
-    # - <tt>Simple::SQL.records("SELECT id, email FROM users")</tt> returns an array of
-    #         hashes { id: id, email: email }
-    #
-    # Simple::SQL.records "SELECT id, email FROM users" do |record|
-    #   # do something
-    # end
-
+    # [Deprecated] Runs a query, with optional arguments, and returns the
+    # result as an array of Hashes.
     def records(sql, *args, into: Hash, &block)
-      result  = exec_logged(sql, *args)
-      decoder = Decoder.new(result, :record, into: into)
-
-      enumerate(result, decoder, block)
+      all sql, *args, into: into, &block
     end
 
-    # Runs a query and returns the first result row of a query as a Hash.
+    # [Deprecated] Runs a query and returns the first result row of a query
+    # as a Hash.
     def record(sql, *args, into: Hash)
-      catch(:ok) do
-        records(sql, *args, into: into) { |row| throw :ok, row }
-        nil
-      end
+      ask sql, *args, into: into
     end
 
     extend Forwardable
@@ -116,10 +101,12 @@ module Simple
       end
     end
 
-    def enumerate(result, decoder, block)
+    def enumerate(result, into:, &block)
+      decoder = Decoder.new(result, into: into)
+
       if block
         result.each_row do |row|
-          block.call decoder.decode(row)
+          yield decoder.decode(row)
         end
         self
       else

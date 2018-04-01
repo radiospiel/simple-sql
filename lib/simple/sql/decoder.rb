@@ -4,10 +4,10 @@ require "time"
 module Simple::SQL::Decoder
   extend self
 
-  def new(result, mode = nil, into: nil)
-    if mode == :record        then Record.new(result, into: into)
+  def new(result, into:)
+    if into                   then Record.new(result, into: into)
     elsif result.nfields == 1 then SingleColumn.new(result)
-    else                      MultiColumns.new(result)
+    else                           MultiColumns.new(result)
     end
   end
 
