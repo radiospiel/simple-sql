@@ -5,7 +5,8 @@ module Simple::SQL::Decoder
   extend self
 
   def new(result, into:)
-    if into                   then Record.new(result, into: into)
+    if into == Hash           then HashRecord.new(result)
+    elsif into                then Record.new(result, into: into)
     elsif result.nfields == 1 then SingleColumn.new(result)
     else                           MultiColumns.new(result)
     end
@@ -79,6 +80,18 @@ module Simple::SQL::Decoder
   end
 end
 
+class Simple::SQL::Decoder::SingleColumn
+  def initialize(result)
+    typename = ::Simple::SQL.send(:resolve_type, result.ftype(0), result.fmod(0))
+    @field_type = typename.to_sym
+  end
+
+  def decode(row)
+    value = row.first
+    value && Simple::SQL::Decoder.decode_value(@field_type, value)
+  end
+end
+
 class Simple::SQL::Decoder::MultiColumns
   def initialize(result)
     @field_types = 0.upto(result.fields.length - 1).map do |idx|
@@ -94,34 +107,25 @@ class Simple::SQL::Decoder::MultiColumns
   end
 end
 
-class Simple::SQL::Decoder::SingleColumn < Simple::SQL::Decoder::MultiColumns
+class Simple::SQL::Decoder::HashRecord < Simple::SQL::Decoder::MultiColumns
   def initialize(result)
-    super
-    @field_type = @field_types.first
-  end
-
-  def decode(row)
-    value = row.first
-    value && Simple::SQL::Decoder.decode_value(@field_type, value)
-  end
-end
-
-class Simple::SQL::Decoder::Record < Simple::SQL::Decoder::MultiColumns
-  def initialize(result, into:)
     super(result)
-
-    @into = into
-    @result = result
-    @field_names = @result.fields.map(&:to_sym)
+    @field_names = result.fields.map(&:to_sym)
   end
 
   def decode(row)
     decoded_row = super(row)
-    hsh = Hash[@field_names.zip(decoded_row)]
-    if @into && @into != Hash
-      @into.new(hsh)
-    else
-      hsh
-    end
+    Hash[@field_names.zip(decoded_row)]
+  end
+end
+
+class Simple::SQL::Decoder::Record < Simple::SQL::Decoder::HashRecord
+  def initialize(result, into:)
+    super(result)
+    @into = into
+  end
+
+  def decode(row)
+    @into.new(super)
   end
 end
