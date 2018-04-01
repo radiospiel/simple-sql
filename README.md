@@ -99,20 +99,28 @@ Simple::SQL.ask "SELECT id FROM users WHERE email=$1", "foo@local"         # ret
 Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"  # returns an array `[ <id>, <email> ]` (or `nil`)
 ```
 
-### Simple::SQL.record/Simple::SQL.records:  fetching hashes
+### Simple::SQL.ask/Simple::SQL.all:  fetching hashes
 
 While `ask` and `all` convert each result row into an Array, sometimes you might want
-to use Hashes or similar objects instead. To do so, you use the record and records functions:
+to use Hashes or similar objects instead. To do so, you use the `into:` keyword argument:
 
     # returns a single Hash (or nil)
-    Simple::SQL.record("SELECT id FROM users") 
+    Simple::SQL.ask("SELECT id FROM users", into: Hash) 
 
 If you want the returned record to be in a structure which is not a Hash, you can use
 the `into: <klass>` option. The following would return an array of up to two `OpenStruct`
 objects:
 
     sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1", 
-    Simple::SQL.records sql, [1,2,3], into: OpenStruct
+    Simple::SQL.all sql, [1,2,3], into: OpenStruct
+
+This supports all target types that take a contructor which acceps Hash arguments.
+
+It also supports a :struct argument, in which case simple-sql creates uses a Struct-class.
+Struct classes are reused when possible, and are maintained by Simple::SQL. 
+
+    sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1", 
+    Simple::SQL.all sql, [1,2,3], into: :struct
 
 ### Transaction support
 
