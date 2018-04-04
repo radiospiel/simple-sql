@@ -81,13 +81,13 @@ module Simple
     # [Deprecated] Runs a query, with optional arguments, and returns the
     # result as an array of Hashes.
     def records(sql, *args, into: Hash, &block)
-      all sql, *args, into: into, &block
+      all sql, *args, into: (into || Hash), &block
     end
 
     # [Deprecated] Runs a query and returns the first result row of a query
     # as a Hash.
     def record(sql, *args, into: Hash)
-      ask sql, *args, into: into
+      ask sql, *args, into: (into || Hash)
     end
 
     extend Forwardable
