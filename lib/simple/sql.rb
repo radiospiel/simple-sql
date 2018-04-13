@@ -21,22 +21,7 @@ module Simple
     delegate [:ask, :all, :each] => :connection
     delegate [:transaction, :wait_for_notify] => :connection
 
-    def logger
-      @logger ||= default_logger
-    end
-
-    def logger=(logger)
-      @logger = logger
-    end
-
-    def default_logger
-      logger = ActiveRecord::Base.logger if defined?(ActiveRecord)
-      return logger if logger
-
-      logger = Logger.new(STDERR)
-      logger.level = Logger::INFO
-      logger
-    end
+    delegate [:logger, :logger=] => ::Simple::SQL::Logging
 
     private
 
@@ -94,7 +79,7 @@ module Simple
     def connect!(database_url = :auto)
       database_url = Config.determine_url if database_url == :auto
 
-      logger.info "Connecting to #{database_url}"
+      Logging.info "Connecting to #{database_url}"
       config = Config.parse_url(database_url)
 
       require "pg"
