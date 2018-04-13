@@ -41,16 +41,30 @@ module Simple
     private
 
     def connection
-      @connector.call
+      connector.call
     end
 
+    # The connector attribute returns a lambda, which, when called, returns a connection
+    # object.
+    #
+    # If this seems weird: this is for interacting with ActiveRecord. To be in sync how
+    # Rails handles ActiveRecord connections (it checks it out of a connection pool when
+    # needed for the first time in a request cycle, and checks it in afterwards) we need
+    # to make sure not to keep a reference to the actual connection object around. Instead
+    # we need to be able to call a function (in that case ActiveRecord::Base.connection).
+    #
+    # In non-Rails mode the connector really is a lambda which just returns an object.
+    #
+    # In any case the connector is stored in a thread-safe fashion. This is not necessary
+    # in Rails mode (because AR::B.connection itself is thread-safe already), but in non-
+    # Rails-mode we make sure to manage one connection per thread.
     def connector=(connector)
-      @connector = connector
+      Thread.current[:"Simple::SQL.connector"] = connector
     end
 
-    self.connector = lambda {
-      connect_to_active_record
-    }
+    def connector
+      Thread.current[:"Simple::SQL.connector"] ||= lambda { connect_to_active_record }
+    end
 
     def connect_to_active_record
       return Connection.active_record_connection if defined?(ActiveRecord)
@@ -86,6 +100,11 @@ module Simple
       require "pg"
       connection = Connection.pg_connection(PG::Connection.new(config))
       self.connector = lambda { connection }
+    end
+
+    # disconnects the current connection.
+    def disconnect!
+      self.connector = nil
     end
   end
 end
