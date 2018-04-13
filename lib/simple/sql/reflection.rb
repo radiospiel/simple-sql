@@ -47,7 +47,7 @@ module Simple
                     "table_schema || '.' || table_name AS name, *"
                   end
 
-        recs = records <<~SQL, schema
+        recs = all <<~SQL, schema, into: Hash
           SELECT #{columns}
           FROM information_schema.tables
           WHERE table_schema=$1
@@ -57,7 +57,7 @@ module Simple
 
       def column_info(table_name)
         schema, table_name = parse_table_name(table_name)
-        recs = records <<~SQL, schema, table_name
+        recs = all <<~SQL, schema, table_name, into: Hash
           SELECT
             column_name AS name,
             *
