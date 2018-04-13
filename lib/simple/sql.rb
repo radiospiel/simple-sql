@@ -6,17 +6,20 @@ require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
 require_relative "sql/logging.rb"
+require_relative "sql/simple_transactions.rb"
+require_relative "sql/connection_adapter.rb"
 require_relative "sql/connection.rb"
 require_relative "sql/reflection.rb"
 require_relative "sql/insert.rb"
 require_relative "sql/duplicate.rb"
 
-# rubocop:disable Metrics/MethodLength
-
 module Simple
   # The Simple::SQL module
   module SQL
     extend self
+    extend Forwardable
+    delegate [:ask, :all, :each] => :connection
+    delegate [:transaction, :wait_for_notify] => :connection
 
     def logger
       @logger ||= default_logger
@@ -35,79 +38,7 @@ module Simple
       logger
     end
 
-    # execute one or more sql statements. This method does not allow to pass in
-    # arguments - since the pg client does not support this - but it allows to
-    # run multiple sql statements separated by ";"
-    def exec(sql)
-      Logging.yield_logged sql do
-        connection.exec sql
-      end
-    end
-
-    # Runs a query, with optional arguments, and returns the result. If the SQL
-    # query returns rows with one column, this method returns an array of these
-    # values. Otherwise it returns an array of arrays.
-    #
-    # Example:
-    #
-    # - <tt>Simple::SQL.all("SELECT id FROM users")</tt> returns an array of id values
-    # - <tt>Simple::SQL.all("SELECT id, email FROM users")</tt> returns an array of
-    #         arrays `[ <id>, <email> ]`.
-    #
-    # Simple::SQL.all "SELECT id, email FROM users" do |id, email|
-    #   # do something
-    # end
-
-    def all(sql, *args, into: nil, &block)
-      result = exec_logged(sql, *args)
-      enumerate(result, into: into, &block)
-    end
-
-    # Runs a query and returns the first result row of a query.
-    #
-    # Examples:
-    #
-    # - <tt>Simple::SQL.ask "SELECT id FROM users WHERE email=$?", "foo@local"</tt>
-    #   returns a number (or +nil+)
-    # - <tt>Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"</tt>
-    #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
-    def ask(sql, *args, into: nil)
-      catch(:ok) do
-        all(sql, *args, into: into) { |row| throw :ok, row }
-        nil
-      end
-    end
-
-    extend Forwardable
-    delegate [:transaction, :wait_for_notify] => :connection
-
     private
-
-    def exec_logged(sql, *args)
-      Logging.yield_logged sql, *args do
-        connection.exec_params(sql, Encoder.encode_args(args))
-      end
-    end
-
-    def enumerate(result, into:, &block)
-      decoder = Decoder.new(result, into: into)
-
-      if block
-        result.each_row do |row|
-          yield decoder.decode(row)
-        end
-        self
-      else
-        ary = []
-        result.each_row { |row| ary << decoder.decode(row) }
-        ary
-      end
-    end
-
-    def resolve_type(ftype, fmod)
-      @resolved_types ||= {}
-      @resolved_types[[ftype, fmod]] ||= connection.exec("SELECT format_type($1,$2)", [ftype, fmod]).getvalue(0, 0)
-    end
 
     def connection
       @connector.call

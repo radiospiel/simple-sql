@@ -1,6 +1,3 @@
-# rubocop:disable Metrics/MethodLength
-# rubocop:disable Style/IfUnlessModifier
-
 # private
 module Simple::SQL::Connection
   def self.active_record_connection
@@ -11,60 +8,34 @@ module Simple::SQL::Connection
     PgConnection.new(connection)
   end
 
+  # A PgConnection object is built around a raw connection. It includes
+  # the ConnectionAdapter, which implements ask, all, + friends, and also
+  # includes a quiet simplistic Transaction implementation
   class PgConnection
-    extend Forwardable
-    delegate %w(exec_params exec escape wait_for_notify) => :@raw_connection
+    attr_reader :raw_connection
 
     def initialize(raw_connection)
       @raw_connection = raw_connection
-      @tx_nesting_level = 0
     end
 
-    private
+    include ::Simple::SQL::ConnectionAdapter          # all, ask, first, etc.
+    include ::Simple::SQL::SimpleTransactions         # transactions
 
-    def transaction(&_block)
-      # Notes: by using "ensure" (as opposed to rescue) we are rolling back
-      # both when an exception was raised and when a value was thrown. This
-      # also means we have to track whether or not to rollback. i.e. do roll
-      # back when we yielded to &block but not otherwise.
-      #
-      # Also the transaction support is a bit limited: you cannot rollback.
-      # Rolling back from inside a nested transaction would require SAVEPOINT
-      # support; without the code is simpler at least :)
-
-      if @tx_nesting_level == 0
-        exec "BEGIN"
-        tx_started = true
-      end
-
-      @tx_nesting_level += 1
-
-      return_value = yield
-
-      # Only commit if we started a transaction here.
-      if tx_started
-        exec "COMMIT"
-        tx_committed = true
-      end
-
-      return_value
-    ensure
-      @tx_nesting_level -= 1
-      if tx_started && !tx_committed
-        exec "ROLLBACK"
-      end
-    end
+    extend Forwardable
+    delegate [:wait_for_notify] => :raw_connection    # wait_for_notify
   end
 
   module ActiveRecordConnection
     extend self
 
+    extend ::Simple::SQL::ConnectionAdapter           # all, ask, first, etc.
+
     extend Forwardable
-    delegate %w(exec_params exec escape wait_for_notify) => :raw_connection
-    delegate [:transaction] => :connection
+    delegate [:transaction] => :connection            # transactions
+    delegate [:wait_for_notify] => :connection        # wait_for_notify
 
     def raw_connection
-      connection.raw_connection
+      ActiveRecord::Base.connection.raw_connection
     end
 
     def connection
