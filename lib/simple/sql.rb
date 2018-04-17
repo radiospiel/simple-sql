@@ -18,7 +18,7 @@ module Simple
   module SQL
     extend self
     extend Forwardable
-    delegate [:ask, :all, :each] => :connection
+    delegate [:ask, :all, :each, :exec] => :connection
     delegate [:transaction, :wait_for_notify] => :connection
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
