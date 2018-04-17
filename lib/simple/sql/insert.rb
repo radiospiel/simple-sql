@@ -1,4 +1,3 @@
-# rubocop:disable Style/ClassVars
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/LineLength
 module Simple

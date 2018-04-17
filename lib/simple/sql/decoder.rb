@@ -4,12 +4,12 @@ require "time"
 module Simple::SQL::Decoder
   extend self
 
-  def new(result, into:)
-    if into == Hash           then HashRecord.new(result)
-    elsif into == :struct     then StructRecord.new(result)
-    elsif into                then Record.new(result, into: into)
-    elsif result.nfields == 1 then SingleColumn.new(result)
-    else                           MultiColumns.new(result)
+  def new(connection, result, into:)
+    if into == Hash           then HashRecord.new(connection, result)
+    elsif into == :struct     then StructRecord.new(connection, result)
+    elsif into                then Record.new(connection, result, into: into)
+    elsif result.nfields == 1 then SingleColumn.new(connection, result)
+    else                           MultiColumns.new(connection, result)
     end
   end
 
@@ -82,8 +82,8 @@ module Simple::SQL::Decoder
 end
 
 class Simple::SQL::Decoder::SingleColumn
-  def initialize(result)
-    typename = ::Simple::SQL.send(:resolve_type, result.ftype(0), result.fmod(0))
+  def initialize(connection, result)
+    typename = connection.resolve_type(result.ftype(0), result.fmod(0))
     @field_type = typename.to_sym
   end
 
@@ -94,9 +94,9 @@ class Simple::SQL::Decoder::SingleColumn
 end
 
 class Simple::SQL::Decoder::MultiColumns
-  def initialize(result)
+  def initialize(connection, result)
     @field_types = 0.upto(result.fields.length - 1).map do |idx|
-      typename = ::Simple::SQL.send(:resolve_type, result.ftype(idx), result.fmod(idx))
+      typename = connection.resolve_type(result.ftype(idx), result.fmod(idx))
       typename.to_sym
     end
   end
@@ -109,8 +109,8 @@ class Simple::SQL::Decoder::MultiColumns
 end
 
 class Simple::SQL::Decoder::HashRecord < Simple::SQL::Decoder::MultiColumns
-  def initialize(result)
-    super(result)
+  def initialize(connection, result)
+    super(connection, result)
     @field_names = result.fields.map(&:to_sym)
   end
 
@@ -121,8 +121,8 @@ class Simple::SQL::Decoder::HashRecord < Simple::SQL::Decoder::MultiColumns
 end
 
 class Simple::SQL::Decoder::Record < Simple::SQL::Decoder::HashRecord
-  def initialize(result, into:)
-    super(result)
+  def initialize(connection, result, into:)
+    super(connection, result)
     @into = into
   end
 
@@ -134,8 +134,8 @@ end
 class Simple::SQL::Decoder::StructRecord < Simple::SQL::Decoder::MultiColumns
   @@struct_cache = {}
 
-  def initialize(result)
-    super(result)
+  def initialize(connection, result)
+    super(connection, result)
 
     field_names = result.fields.map(&:to_sym)
     @into = @@struct_cache[field_names] ||= Struct.new(*field_names)

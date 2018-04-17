@@ -11,7 +11,7 @@ describe "Simple::SQL.insert" do
     expect(initial_ids).not_to include(id)
     expect(SQL.ask("SELECT count(*) FROM users")).to eq(USER_COUNT+1)
 
-    user = SQL.record("SELECT * FROM users WHERE id=$1", id, into: OpenStruct)
+    user = SQL.ask("SELECT * FROM users WHERE id=$1", id, into: OpenStruct)
     expect(user.first_name).to eq("foo")
     expect(user.last_name).to eq("bar")
     expect(user.created_at).to be_a(Time)

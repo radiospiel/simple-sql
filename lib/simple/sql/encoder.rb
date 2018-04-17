@@ -1,15 +1,12 @@
 # private
 module Simple::SQL::Encoder
   extend self
-  extend Forwardable
 
-  delegate connection: ::Simple::SQL
-
-  def encode_args(args)
-    args.map { |arg| encode_arg(arg) }
+  def encode_args(connection, args)
+    args.map { |arg| encode_arg(connection, arg) }
   end
 
-  def encode_arg(arg)
+  def encode_arg(connection, arg)
     return arg unless arg.is_a?(Array)
 
     if arg.first.is_a?(String)

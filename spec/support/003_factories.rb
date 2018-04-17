@@ -29,5 +29,5 @@ end
 def create(table)
   table_name = table.to_s.pluralize
   id = Simple::SQL.insert(table_name, attrs(table))
-  Simple::SQL.record("SELECT * FROM #{table_name} WHERE id=$1", id, into: OpenStruct)
+  Simple::SQL.ask("SELECT * FROM #{table_name} WHERE id=$1", id, into: OpenStruct)
 end

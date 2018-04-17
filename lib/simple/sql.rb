@@ -6,132 +6,50 @@ require_relative "sql/decoder.rb"
 require_relative "sql/encoder.rb"
 require_relative "sql/config.rb"
 require_relative "sql/logging.rb"
+require_relative "sql/simple_transactions.rb"
+require_relative "sql/connection_adapter.rb"
 require_relative "sql/connection.rb"
 require_relative "sql/reflection.rb"
 require_relative "sql/insert.rb"
 require_relative "sql/duplicate.rb"
 
-# rubocop:disable Metrics/MethodLength
-
 module Simple
   # The Simple::SQL module
   module SQL
     extend self
-
-    def logger
-      @logger ||= default_logger
-    end
-
-    def logger=(logger)
-      @logger = logger
-    end
-
-    def default_logger
-      logger = ActiveRecord::Base.logger if defined?(ActiveRecord)
-      return logger if logger
-
-      logger = Logger.new(STDERR)
-      logger.level = Logger::INFO
-      logger
-    end
-
-    # execute one or more sql statements. This method does not allow to pass in
-    # arguments - since the pg client does not support this - but it allows to
-    # run multiple sql statements separated by ";"
-    def exec(sql)
-      Logging.yield_logged sql do
-        connection.exec sql
-      end
-    end
-
-    # Runs a query, with optional arguments, and returns the result. If the SQL
-    # query returns rows with one column, this method returns an array of these
-    # values. Otherwise it returns an array of arrays.
-    #
-    # Example:
-    #
-    # - <tt>Simple::SQL.all("SELECT id FROM users")</tt> returns an array of id values
-    # - <tt>Simple::SQL.all("SELECT id, email FROM users")</tt> returns an array of
-    #         arrays `[ <id>, <email> ]`.
-    #
-    # Simple::SQL.all "SELECT id, email FROM users" do |id, email|
-    #   # do something
-    # end
-
-    def all(sql, *args, into: nil, &block)
-      result = exec_logged(sql, *args)
-      enumerate(result, into: into, &block)
-    end
-
-    # Runs a query and returns the first result row of a query.
-    #
-    # Examples:
-    #
-    # - <tt>Simple::SQL.ask "SELECT id FROM users WHERE email=$?", "foo@local"</tt>
-    #   returns a number (or +nil+)
-    # - <tt>Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"</tt>
-    #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
-    def ask(sql, *args, into: nil)
-      catch(:ok) do
-        all(sql, *args, into: into) { |row| throw :ok, row }
-        nil
-      end
-    end
-
-    # [Deprecated] Runs a query, with optional arguments, and returns the
-    # result as an array of Hashes.
-    def records(sql, *args, into: Hash, &block)
-      all sql, *args, into: (into || Hash), &block
-    end
-
-    # [Deprecated] Runs a query and returns the first result row of a query
-    # as a Hash.
-    def record(sql, *args, into: Hash)
-      ask sql, *args, into: (into || Hash)
-    end
-
     extend Forwardable
+    delegate [:ask, :all, :each] => :connection
     delegate [:transaction, :wait_for_notify] => :connection
+
+    delegate [:logger, :logger=] => ::Simple::SQL::Logging
 
     private
 
-    def exec_logged(sql, *args)
-      Logging.yield_logged sql, *args do
-        connection.exec_params(sql, Encoder.encode_args(args))
-      end
-    end
-
-    def enumerate(result, into:, &block)
-      decoder = Decoder.new(result, into: into)
-
-      if block
-        result.each_row do |row|
-          yield decoder.decode(row)
-        end
-        self
-      else
-        ary = []
-        result.each_row { |row| ary << decoder.decode(row) }
-        ary
-      end
-    end
-
-    def resolve_type(ftype, fmod)
-      @resolved_types ||= {}
-      @resolved_types[[ftype, fmod]] ||= connection.exec("SELECT format_type($1,$2)", [ftype, fmod]).getvalue(0, 0)
-    end
-
     def connection
-      @connector.call
+      connector.call
     end
 
+    # The connector attribute returns a lambda, which, when called, returns a connection
+    # object.
+    #
+    # If this seems weird: this is for interacting with ActiveRecord. To be in sync how
+    # Rails handles ActiveRecord connections (it checks it out of a connection pool when
+    # needed for the first time in a request cycle, and checks it in afterwards) we need
+    # to make sure not to keep a reference to the actual connection object around. Instead
+    # we need to be able to call a function (in that case ActiveRecord::Base.connection).
+    #
+    # In non-Rails mode the connector really is a lambda which just returns an object.
+    #
+    # In any case the connector is stored in a thread-safe fashion. This is not necessary
+    # in Rails mode (because AR::B.connection itself is thread-safe already), but in non-
+    # Rails-mode we make sure to manage one connection per thread.
     def connector=(connector)
-      @connector = connector
+      Thread.current[:"Simple::SQL.connector"] = connector
     end
 
-    self.connector = lambda {
-      connect_to_active_record
-    }
+    def connector
+      Thread.current[:"Simple::SQL.connector"] ||= lambda { connect_to_active_record }
+    end
 
     def connect_to_active_record
       return Connection.active_record_connection if defined?(ActiveRecord)
@@ -161,12 +79,17 @@ module Simple
     def connect!(database_url = :auto)
       database_url = Config.determine_url if database_url == :auto
 
-      logger.info "Connecting to #{database_url}"
+      Logging.info "Connecting to #{database_url}"
       config = Config.parse_url(database_url)
 
       require "pg"
       connection = Connection.pg_connection(PG::Connection.new(config))
       self.connector = lambda { connection }
+    end
+
+    # disconnects the current connection.
+    def disconnect!
+      self.connector = nil
     end
   end
 end

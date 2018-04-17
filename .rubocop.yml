@@ -10,7 +10,7 @@ AllCops:
     - 'Rakefile'
 
 Metrics/LineLength:
-  Max: 115
+  Max: 120
 
 Style/SpecialGlobalVars:
   Enabled: false
@@ -56,4 +56,7 @@ Style/NumericPredicate:
   Enabled: false
 
 Style/RegexpLiteral:
+  Enabled: false
+
+Style/ClassVars:
   Enabled: false
