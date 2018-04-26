@@ -1,3 +1,5 @@
+# rubocop:disable Style/IfUnlessModifier
+# rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
 
 # This module implements an adapter between the Simple::SQL interface
@@ -6,9 +8,10 @@
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
 module Simple::SQL::ConnectionAdapter
-  Logging = Simple::SQL::Logging
-  Encoder = Simple::SQL::Encoder
-  Decoder = Simple::SQL::Decoder
+  Logging = ::Simple::SQL::Logging
+  Encoder = ::Simple::SQL::Encoder
+  Decoder = ::Simple::SQL::Decoder
+  Scope   = ::Simple::SQL::Scope
 
   # execute one or more sql statements. This method does not allow to pass in
   # arguments - since the pg client does not support this - but it allows to
@@ -35,7 +38,11 @@ module Simple::SQL::ConnectionAdapter
 
   def all(sql, *args, into: nil, &block)
     result = exec_logged(sql, *args)
-    enumerate(result, into: into, &block)
+    result = enumerate(result, into: into, &block)
+    if sql.is_a?(Scope) && sql.paginated?
+      add_page_info(sql, result)
+    end
+    result
   end
 
   # Runs a query and returns the first result row of a query.
@@ -53,7 +60,30 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
-  def exec_logged(sql, *args)
+  def add_page_info(scope, results)
+    raise ArgumentError, "expect Array but get a #{results.class.name}" unless results.is_a?(Array)
+    raise ArgumentError, "per must be > 0" unless scope.per > 0
+
+    # optimization: add empty case (page <= 1 && results.empty?)
+    if scope.page <= 1 && results.empty?
+      Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: scope.page)
+    else
+      sql = "SELECT COUNT(*) FROM (#{scope.to_sql(pagination: false)}) simple_sql_count"
+      total_count = ask(sql, *scope.args)
+      Scope::PageInfo.attach(results, total_count: total_count, per: scope.per, page: scope.page)
+    end
+  end
+
+  def exec_logged(sql_or_scope, *args)
+    if sql_or_scope.is_a?(Scope)
+      raise ArgumentError, "You cannot call .all with a scope and additional arguments" unless args.empty?
+
+      sql  = sql_or_scope.to_sql
+      args = sql_or_scope.args
+    else
+      sql = sql_or_scope
+    end
+
     Logging.yield_logged sql, *args do
       raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args))
     end
