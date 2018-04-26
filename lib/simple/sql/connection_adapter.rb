@@ -1,3 +1,5 @@
+# rubocop:disable Style/IfUnlessModifier
+# rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
 
 # This module implements an adapter between the Simple::SQL interface

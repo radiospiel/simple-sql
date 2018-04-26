@@ -1,3 +1,11 @@
+# rubocop:disable Style/Not
+# rubocop:disable Style/MultipleComparison
+# rubocop:disable Style/IfUnlessModifier
+# rubocop:disable Metrics/AbcSize
+# rubocop:disable Metrics/CyclomaticComplexity
+# rubocop:disable Metrics/MethodLength
+# rubocop:disable Metrics/PerceivedComplexity
+
 # The Simple::SQL::Scope class helps building scopes; i.e. objects
 # that start as a quite basic SQL query, and allow one to add
 # sql_fragments as where conditions.
@@ -37,13 +45,13 @@ class Simple::SQL::Scope
   #
   # TODO: Add support for hash arguments, i.e.
   # scope = scope.where(title: "foobar")
-  def where(sql_fragment, arg = :__dummy__no__arg, placeholder: '?')
+  def where(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
   end
 
   private
 
-  def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: '?')
+  def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     if arg == :__dummy__no__arg
       @filters << sql_fragment
     else
