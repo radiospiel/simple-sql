@@ -7,6 +7,12 @@ describe "Simple::SQL::Scope" do
 
   let!(:users) { 1.upto(2).map { create(:user) } }
 
+  it 'allows chaining of scopes' do
+    scope1 = SQL::Scope.new "SELECT 1, 2 FROM users"
+    scope2 = scope1.where("FALSE")
+    expect(scope1.to_sql).not_to eq(scope2.to_sql)
+  end
+
   context "without conditions" do
     let(:scope) { SQL::Scope.new "SELECT 1, 2 FROM users" }
 
@@ -119,17 +125,13 @@ describe "Simple::SQL::Scope" do
     end
 
     it "sets paginated?" do
-      scope.paginate(per: 1, page: 1)
-      expect(scope.paginated?).to eq(true)
+      s = scope.paginate(per: 1, page: 1)
+      expect(s.paginated?).to eq(true)
     end
 
     context "with per=1" do
-      before do
-        scope.paginate(per: 1, page: 1)
-      end
-
       it "adds pagination info to the .all return value" do
-        result = SQL.all(scope)
+        result = SQL.all(scope.paginate(per: 1, page: 1))
 
         expect(result).to eq([[1, 2]])
         expect(result.total_pages).to eq(2)
@@ -139,14 +141,8 @@ describe "Simple::SQL::Scope" do
     end
 
     context "with per=2" do
-      before do
-        scope.paginate(per: 2, page: 1)
-        result = SQL.all(scope)
-      end
-
       it "returns an empty array after the last page" do
-        scope.paginate(per: 2, page: 2)
-        result = SQL.all(scope)
+        result = SQL.all(scope.paginate(per: 2, page: 2))
 
         expect(result).to eq([])
         expect(result.total_pages).to eq(1)
@@ -155,7 +151,7 @@ describe "Simple::SQL::Scope" do
       end
 
       it "adds pagination info to the .all return value" do
-        result = SQL.all(scope)
+        result = SQL.all(scope.paginate(per: 2, page: 1))
 
         expect(result).to eq([[1, 2], [1, 2]])
         expect(result.total_pages).to eq(1)

@@ -1,10 +1,9 @@
 # The Simple::SQL::Scope class helps building scopes; i.e. objects
 # that start as a quite basic SQL query, and allow one to add
 # sql_fragments as where conditions.
-#
-# Note that in contrast to ActiveRecord scopes these methods can be
-# chained, but the chain is always modifying the same object.
 class Simple::SQL::Scope
+  SELF = self
+
   attr_reader :args
   attr_reader :per, :page
 
@@ -14,6 +13,19 @@ class Simple::SQL::Scope
     @args = []
     @filters = []
   end
+
+  private
+
+  def duplicate
+    dupe = SELF.new(@sql)
+    dupe.instance_variable_set :@args, @args.dup
+    dupe.instance_variable_set :@filters, @filters.dup
+    dupe.instance_variable_set :@per, @per
+    dupe.instance_variable_set :@page, @page
+    dupe
+  end
+
+  public
 
   # scope = Scope.new("SELECT * FROM tablename")
   # scope = scope.where("id > ?", 12)
@@ -26,6 +38,12 @@ class Simple::SQL::Scope
   # TODO: Add support for hash arguments, i.e.
   # scope = scope.where(title: "foobar")
   def where(sql_fragment, arg = :__dummy__no__arg, placeholder: '?')
+    duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
+  end
+
+  private
+
+  def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: '?')
     if arg == :__dummy__no__arg
       @filters << sql_fragment
     else
@@ -36,13 +54,23 @@ class Simple::SQL::Scope
     self
   end
 
+  public
+
   # Set pagination
   def paginate(per:, page:)
+    duplicate.send(:paginate!, per: per, page: page)
+  end
+
+  private
+
+  def paginate!(per:, page:)
     @per = per
     @page = page
 
     self
   end
+
+  public
 
   # Is this a paginated scope?
   def paginated?
