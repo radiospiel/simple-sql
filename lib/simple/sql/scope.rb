@@ -14,12 +14,14 @@ class Simple::SQL::Scope
 
   attr_reader :args
   attr_reader :per, :page
+  attr_reader :order_by_fragment
 
   # Build a scope object
   def initialize(sql)
     @sql = sql
     @args = []
     @filters = []
+    @order_by = nil
   end
 
   private
@@ -30,6 +32,7 @@ class Simple::SQL::Scope
     dupe.instance_variable_set :@filters, @filters.dup
     dupe.instance_variable_set :@per, @per
     dupe.instance_variable_set :@page, @page
+    dupe.instance_variable_set :@order_by_fragment, @order_by_fragment
     dupe
   end
 
@@ -49,8 +52,6 @@ class Simple::SQL::Scope
     duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
   end
 
-  private
-
   def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     if arg == :__dummy__no__arg
       @filters << sql_fragment
@@ -62,20 +63,26 @@ class Simple::SQL::Scope
     self
   end
 
-  public
-
   # Set pagination
   def paginate(per:, page:)
     duplicate.send(:paginate!, per: per, page: page)
   end
-
-  private
 
   def paginate!(per:, page:)
     @per = per
     @page = page
 
     self
+  end
+
+  # Adjust sort order
+  def order_by!(sql_fragment)
+    @order_by_fragment = sql_fragment
+    self
+  end
+
+  def order_by(sql_fragment)
+    duplicate.order_by!(sql_fragment)
   end
 
   public
@@ -94,11 +101,16 @@ class Simple::SQL::Scope
     unless active_filters.empty?
       sql += " WHERE (" + active_filters.join(") AND (") + ")"
     end
+
+    if order_by_fragment
+      sql += " ORDER BY #{order_by_fragment}"
+    end
+
     if pagination == :auto && @per && @page
       raise ArgumentError, "per must be > 0" unless @per > 0
       raise ArgumentError, "page must be > 0" unless @page > 0
 
-      sql += "LIMIT #{@per} OFFSET #{(@page - 1) * @per}"
+      sql += " LIMIT #{@per} OFFSET #{(@page - 1) * @per}"
     end
 
     sql

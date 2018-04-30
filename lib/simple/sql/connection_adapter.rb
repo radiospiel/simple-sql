@@ -60,15 +60,17 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
+  private
+
   def add_page_info(scope, results)
     raise ArgumentError, "expect Array but get a #{results.class.name}" unless results.is_a?(Array)
     raise ArgumentError, "per must be > 0" unless scope.per > 0
 
     # optimization: add empty case (page <= 1 && results.empty?)
     if scope.page <= 1 && results.empty?
-      Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: scope.page)
+      Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: 1)
     else
-      sql = "SELECT COUNT(*) FROM (#{scope.to_sql(pagination: false)}) simple_sql_count"
+      sql = "SELECT COUNT(*) FROM (#{scope.order_by(nil).to_sql(pagination: false)}) simple_sql_count"
       total_count = ask(sql, *scope.args)
       Scope::PageInfo.attach(results, total_count: total_count, per: scope.per, page: scope.page)
     end
@@ -103,6 +105,8 @@ module Simple::SQL::ConnectionAdapter
       ary
     end
   end
+
+  public
 
   def resolve_type(ftype, fmod)
     @resolved_types ||= {}
