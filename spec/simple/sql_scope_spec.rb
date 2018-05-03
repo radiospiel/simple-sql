@@ -140,6 +140,18 @@ describe "Simple::SQL::Scope" do
       end
     end
 
+    context "with per=0" do
+      let(:result) { SQL.all(scope.paginate(per: 0)) }
+
+      it "returns an empty result set" do
+        expect(result).to eq([])
+      end
+
+      it "adds total_count info to the .all return value" do
+        expect(result.total_count).to eq(2)
+      end
+    end
+
     context "with per=2" do
       it "returns an empty array after the last page" do
         result = SQL.all(scope.paginate(per: 2, page: 2))

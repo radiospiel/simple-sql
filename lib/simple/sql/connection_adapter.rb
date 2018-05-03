@@ -64,10 +64,9 @@ module Simple::SQL::ConnectionAdapter
 
   def add_page_info(scope, results)
     raise ArgumentError, "expect Array but get a #{results.class.name}" unless results.is_a?(Array)
-    raise ArgumentError, "per must be > 0" unless scope.per > 0
 
     # optimization: add empty case (page <= 1 && results.empty?)
-    if scope.page <= 1 && results.empty?
+    if scope.page <= 1 && scope.per > 0 && results.empty?
       Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: 1)
     else
       sql = "SELECT COUNT(*) FROM (#{scope.order_by(nil).to_sql(pagination: false)}) simple_sql_count"
@@ -79,6 +78,8 @@ module Simple::SQL::ConnectionAdapter
   def exec_logged(sql_or_scope, *args)
     if sql_or_scope.is_a?(Scope)
       raise ArgumentError, "You cannot call .all with a scope and additional arguments" unless args.empty?
+
+      return [] if sql_or_scope.per == 0
 
       sql  = sql_or_scope.to_sql
       args = sql_or_scope.args
@@ -92,6 +93,8 @@ module Simple::SQL::ConnectionAdapter
   end
 
   def enumerate(result, into:, &block)
+    return result if result.is_a?(Array) && result.empty?
+
     decoder = Decoder.new(self, result, into: into)
 
     if block
