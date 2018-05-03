@@ -50,15 +50,11 @@ gives you the following options:
 
 Note: whenever you run a query `simple-sql` takes care of sending query parameters over the wire properly. That means that you use placeholders `$1`, `$2`, etc. to use these inside your queries; the following is a correct example:
 
-```ruby
-Simple::SQL.all "SELECT * FROM users WHERE email=$1", "foo@bar.local"
-```
+    Simple::SQL.all "SELECT * FROM users WHERE email=$1", "foo@bar.local"
 
 Also note that it is not possible to use an array as the argument for the `IN(?)` SQL construct. Instead you want to use `ANY`, for example:
 
-```ruby
-Simple::SQL.all "SELECT * FROM users WHERE id = ANY($1)", [1,2,3]
-```
+    Simple::SQL.all "SELECT * FROM users WHERE id = ANY($1)", [1,2,3]
 
 ### Simple::SQL.all: Fetching all results of a query
 
@@ -71,18 +67,14 @@ Otherwise it returns an array of arrays.
 
 Examples:
 
-```ruby
-Simple::SQL.all("SELECT id FROM users")        # returns an array of id values, but
-Simple::SQL.all("SELECT id, email FROM users") # returns an array of arrays `[ <id>, <email> ]`.
-```
+    Simple::SQL.all("SELECT id FROM users")        # returns an array of id values, but
+    Simple::SQL.all("SELECT id, email FROM users") # returns an array of arrays `[ <id>, <email> ]`.
 
 If a block is passed to SQL.all, each row is yielded into the block:
 
-```ruby
-Simple::SQL.all "SELECT id, email FROM users" do |id, email|
-  # do something
-end
-```
+    Simple::SQL.all "SELECT id, email FROM users" do |id, email|
+      # do something
+    end
 
 ### Simple::SQL.ask:  getting the first result
 
@@ -94,10 +86,8 @@ If the SQL query returns rows with one column, this method returns the column va
 
 Examples:
 
-```ruby
-Simple::SQL.ask "SELECT id FROM users WHERE email=$1", "foo@local"         # returns a number (or `nil`) and
-Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"  # returns an array `[ <id>, <email> ]` (or `nil`)
-```
+    Simple::SQL.ask "SELECT id FROM users WHERE email=$1", "foo@local"         # returns a number (or `nil`) and
+    Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"  # returns an array `[ <id>, <email> ]` (or `nil`)
 
 ### Simple::SQL.ask/Simple::SQL.all:  fetching hashes
 
@@ -111,15 +101,15 @@ If you want the returned record to be in a structure which is not a Hash, you ca
 the `into: <klass>` option. The following would return an array of up to two `OpenStruct`
 objects:
 
-    sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1", 
+    sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1"
     Simple::SQL.all sql, [1,2,3], into: OpenStruct
 
-This supports all target types that take a contructor which acceps Hash arguments.
+This supports all target types that take a constructor which accepts Hash arguments.
 
 It also supports a :struct argument, in which case simple-sql creates uses a Struct-class.
 Struct classes are reused when possible, and are maintained by Simple::SQL. 
 
-    sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1", 
+    sql = "SELECT id, email FROM users WHERE id = ANY($1) LIMIT 1"
     Simple::SQL.all sql, [1,2,3], into: :struct
 
 ### Transaction support

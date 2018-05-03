@@ -3,3 +3,4 @@ rdoc
 pkg
 log/test.log
 .rspec.status
+.rake_t_cache
