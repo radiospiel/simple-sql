@@ -126,7 +126,7 @@ class Simple::SQL::Scope
     def self.attach(results, total_count:, per:, page:)
       results.extend(self)
       results.instance_variable_set :@total_count, total_count
-      results.instance_variable_set :@total_pages, (total_count + (per - 1)) / per
+      results.instance_variable_set :@total_pages, per > 0 ? (total_count + (per - 1)) / per : -1
       results.instance_variable_set :@current_page, page
       results
     end
