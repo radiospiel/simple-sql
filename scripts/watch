@@ -1,2 +1,2 @@
 #!/bin/bash
-watchr lib,spec rspec
+watchr lib,spec rake fastspec

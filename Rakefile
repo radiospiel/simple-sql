@@ -10,3 +10,8 @@ task default: "test:prepare_db" do
   sh "USE_ACTIVE_RECORD=1 rspec"
   sh "rubocop -D"
 end
+
+task :fastspec do
+  sh "SKIP_SIMPLE_COV=1 rspec --only-failures"
+  sh "rspec"
+end
