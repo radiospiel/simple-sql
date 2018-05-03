@@ -52,6 +52,17 @@ class Simple::SQL::Scope
     duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
   end
 
+  # Set pagination
+  def paginate(per:, page:)
+    duplicate.send(:paginate!, per: per, page: page)
+  end
+
+  def order_by(sql_fragment)
+    duplicate.send(:order_by!, sql_fragment)
+  end
+
+  private
+
   def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     if arg == :__dummy__no__arg
       @filters << sql_fragment
@@ -61,11 +72,6 @@ class Simple::SQL::Scope
     end
 
     self
-  end
-
-  # Set pagination
-  def paginate(per:, page:)
-    duplicate.send(:paginate!, per: per, page: page)
   end
 
   def paginate!(per:, page:)
@@ -79,10 +85,6 @@ class Simple::SQL::Scope
   def order_by!(sql_fragment)
     @order_by_fragment = sql_fragment
     self
-  end
-
-  def order_by(sql_fragment)
-    duplicate.order_by!(sql_fragment)
   end
 
   public
@@ -124,7 +126,7 @@ class Simple::SQL::Scope
     def self.attach(results, total_count:, per:, page:)
       results.extend(self)
       results.instance_variable_set :@total_count, total_count
-      results.instance_variable_set :@total_pages, (total_count + (per - 1)) / per
+      results.instance_variable_set :@total_pages, per > 0 ? (total_count + (per - 1)) / per : -1
       results.instance_variable_set :@current_page, page
       results
     end

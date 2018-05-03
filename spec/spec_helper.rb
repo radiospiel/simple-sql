@@ -23,6 +23,8 @@ USER_COUNT = 2
 ActiveRecord::Base.logger.level = Logger::INFO
 
 RSpec.configure do |config|
+  config.example_status_persistence_file_path = ".rspec.status"
+
   config.run_all_when_everything_filtered = true
   config.filter_run focus: (ENV["CI"] != "true")
   config.expect_with(:rspec) { |c| c.syntax = :expect }

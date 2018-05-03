@@ -1,3 +1,5 @@
+unless ENV['SKIP_SIMPLE_COV']
+
 require "simplecov"
 
 # make sure multiple runs result in multiple result set. SimpleCov will take
@@ -11,4 +13,6 @@ SimpleCov.start do
   end
 
   minimum_coverage 90
+end
+
 end
