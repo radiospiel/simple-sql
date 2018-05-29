@@ -54,7 +54,14 @@ class Simple::SQL::Scope
 
   def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     if arg == :__dummy__no__arg
-      @filters << sql_fragment
+      if sql_fragment.is_a?(Hash)
+        sql_fragment.each do |key, value|
+          @args << value
+          @filters << "#{key} = $#{@args.length}"
+        end
+      else
+        @filters << sql_fragment
+      end
     else
       @args << arg
       @filters << sql_fragment.gsub(placeholder, "$#{@args.length}")

@@ -25,6 +25,31 @@ describe "Simple::SQL::Scope" do
     end
   end
 
+  context "with hash conditions" do
+    let(:user_id) { SQL.ask "SELECT id FROM users LIMIT 1" }
+    let(:scope)   { SQL::Scope.new "SELECT 1 FROM users" }
+
+    context "that do not match" do
+      it "does not match with string keys" do
+        expect(SQL.ask(scope.where(id: -1))).to be_nil
+      end
+
+      it "does not match with symbol keys" do
+        expect(SQL.ask(scope.where("id" => -1))).to be_nil
+      end
+    end
+
+    context "that match" do
+      it "matches with string keys" do
+        expect(SQL.ask(scope.where("id" => user_id))).to eq(1)
+      end
+
+      it "matches with symbol keys" do
+        expect(SQL.ask(scope.where(id: user_id))).to eq(1)
+      end
+    end
+  end
+
   context "with non-argument conditions" do
     context "that do not match" do
       let(:scope) do
