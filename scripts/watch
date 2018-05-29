@@ -1,2 +1,2 @@
 #!/bin/bash
-watchr lib,spec rspec
+watchr lib,spec 'rspec --only-failures ; [[ $? == 2 ]] && rspec'

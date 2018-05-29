@@ -27,6 +27,8 @@ RSpec.configure do |config|
   config.filter_run focus: (ENV["CI"] != "true")
   config.expect_with(:rspec) { |c| c.syntax = :expect }
   config.order = "random"
+  config.example_status_persistence_file_path = ".rspec.data"
+
   config.around(:each) do |example|
     Simple::SQL.ask "DELETE FROM users"
     Simple::SQL.ask "DELETE FROM unique_users"
