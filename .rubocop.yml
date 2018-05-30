@@ -60,3 +60,6 @@ Style/RegexpLiteral:
 
 Style/ClassVars:
   Enabled: false
+
+Style/ConditionalAssignment:
+  Enabled: false

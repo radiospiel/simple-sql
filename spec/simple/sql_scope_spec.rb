@@ -48,6 +48,22 @@ describe "Simple::SQL::Scope" do
         expect(SQL.ask(scope.where(id: user_id))).to eq(1)
       end
     end
+
+    context "with array arguments" do
+      it "matches against array arguments" do
+        expect(SQL.ask(scope.where("id" => [-333, user_id]))).to eq(1)
+        expect(SQL.ask(scope.where("id" => [-333, -1]))).to be_nil
+        expect(SQL.ask(scope.where("id" => []))).to be_nil
+      end
+    end
+
+    context "with invalid arguments" do
+      it "raises an ArgumentError" do
+        expect {
+          scope.where(1 => 3)
+        }.to raise_error(ArgumentError)
+      end
+    end
   end
 
   context "with non-argument conditions" do

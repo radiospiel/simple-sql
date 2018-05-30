@@ -39,35 +39,54 @@ class Simple::SQL::Scope
   public
 
   # scope = Scope.new("SELECT * FROM tablename")
+  # scope = scope.where(id: 12)
   # scope = scope.where("id > ?", 12)
   #
-  # The placeholder (usually a '?') is being replaced with the numbered
-  # argument (since postgres is using $1, $2, etc.) If your SQL fragment
-  # uses '?' as part of some fixed text you must use an alternative
-  # placeholder symbol.
+  # In the second form the placeholder (usually a '?') is being replaced
+  # with the numbered argument (since postgres is using $1, $2, etc.)
+  # If your SQL fragment uses '?' as part of some fixed text you must
+  # use an alternative placeholder symbol:
   #
-  # TODO: Add support for hash arguments, i.e.
-  # scope = scope.where(title: "foobar")
+  # scope = scope.where("foo | '?' = '^'", match, placeholder: '^')
+  #
   def where(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
     duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
   end
 
-  def where!(sql_fragment, arg = :__dummy__no__arg, placeholder: "?")
-    if arg == :__dummy__no__arg
-      if sql_fragment.is_a?(Hash)
-        sql_fragment.each do |key, value|
-          @args << value
-          @filters << "#{key} = $#{@args.length}"
-        end
-      else
-        @filters << sql_fragment
-      end
+  def where!(first_arg, arg = :__dummy__no__arg, placeholder: "?")
+    if arg != :__dummy__no__arg
+      where_sql_with_argument!(first_arg, arg, placeholder: placeholder)
+    elsif first_arg.is_a?(Hash)
+      where_hash!(first_arg)
     else
-      @args << arg
-      @filters << sql_fragment.gsub(placeholder, "$#{@args.length}")
+      where_sql!(first_arg)
     end
 
     self
+  end
+
+  def where_sql!(sql_fragment)
+    @filters << sql_fragment
+  end
+
+  def where_sql_with_argument!(sql_fragment, arg, placeholder:)
+    @args << arg
+    @filters << sql_fragment.gsub(placeholder, "$#{@args.length}")
+  end
+
+  def where_hash!(hsh)
+    hsh.each do |key, value|
+      raise ArgumentError, "condition key must be a Symbol or a String" unless key.is_a?(Symbol) || key.is_a?(String)
+
+      @args << value
+
+      case value
+      when Array
+        @filters << "#{key} = ANY($#{@args.length})"
+      else
+        @filters << "#{key} = $#{@args.length}"
+      end
+    end
   end
 
   # Set pagination
