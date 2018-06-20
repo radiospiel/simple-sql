@@ -1,6 +1,7 @@
 # rubocop:disable Style/Not
 # rubocop:disable Style/MultipleComparison
 # rubocop:disable Style/IfUnlessModifier
+# rubocop:disable Style/GuardClause
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/CyclomaticComplexity
 # rubocop:disable Metrics/MethodLength
@@ -61,8 +62,10 @@ class Simple::SQL::Scope
   # scope = scope.where(metadata: { uid: 1 }, jsonb: false)
   #
   def where(sql_fragment, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
-    duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder)
+    duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder, jsonb: jsonb)
   end
+
+  private
 
   def where!(first_arg, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
     if arg != :__dummy__no__arg
@@ -137,10 +140,19 @@ class Simple::SQL::Scope
     end
   end
 
+  public
+
   # Set pagination
   def paginate(per:, page:)
     duplicate.send(:paginate!, per: per, page: page)
   end
+
+  # Is this a paginated scope?
+  def paginated?
+    not @per.nil?
+  end
+
+  private
 
   def paginate!(per:, page:)
     @per = per
@@ -149,22 +161,21 @@ class Simple::SQL::Scope
     self
   end
 
+  public
+
+  def order_by(sql_fragment)
+    duplicate.send(:order_by!, sql_fragment)
+  end
+
+  private
+
   # Adjust sort order
   def order_by!(sql_fragment)
     @order_by_fragment = sql_fragment
     self
   end
 
-  def order_by(sql_fragment)
-    duplicate.order_by!(sql_fragment)
-  end
-
   public
-
-  # Is this a paginated scope?
-  def paginated?
-    not @per.nil?
-  end
 
   # generate a sql query
   def to_sql(pagination: :auto)
