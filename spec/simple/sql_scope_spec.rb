@@ -5,7 +5,9 @@ describe "Simple::SQL::Scope" do
     expect(SQL.ask(sql, *args)).to eq(expected_result)
   end
 
-  let!(:users) { 1.upto(2).map { create(:user) } }
+  let!(:users) do
+    1.upto(2).map { |id| create(:user, id: id) }
+  end
 
   it 'allows chaining of scopes' do
     scope1 = SQL::Scope.new "SELECT 1, 2 FROM users"
@@ -154,6 +156,49 @@ describe "Simple::SQL::Scope" do
 
       it "runs with SQL.ask" do
         expect(SQL.ask(scope)).to be_nil
+      end
+    end
+
+    describe "hash matches" do
+      let(:scope) { SQL::Scope.new("SELECT id FROM users") }
+
+      it 'validates hash keys' do
+        expect {
+          scope.where("foo bar" => "baz")
+        }.to raise_error(ArgumentError)
+      end
+    end
+
+    describe "JSONB matches" do
+      before do
+        SQL.exec <<~SQL
+          UPDATE users SET metadata = '{"type": "user"}';
+          UPDATE users SET metadata = jsonb_set(metadata, '{uid}', to_json(id)::jsonb);
+        SQL
+      end
+
+      def ids_matching(condition)
+        scope = SQL::Scope.new("SELECT id FROM users")
+        scope = scope.where(condition)
+        SQL.all(scope)
+      end
+
+      it "runs with SQL.ask" do
+        # exact match
+        expect(ids_matching(metadata: { "uid" => 1 })).to contain_exactly(1)
+
+        # match against array
+        expect(ids_matching(metadata: { "uid" => [] })).to contain_exactly()
+        expect(ids_matching(metadata: { "uid" => [1, -1] })).to contain_exactly(1)
+        expect(ids_matching(metadata: { "uid" => [1, 2] })).to contain_exactly(1, 2)
+
+        # match against array of mixed types
+        expect(ids_matching(metadata: { "uid" => [1, "-1"] })).to contain_exactly(1)
+
+        # match against multiple conditions
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => "foo" })).to contain_exactly()
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => ["foo", "user"] })).to contain_exactly(1)
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => [] })).to contain_exactly()
       end
     end
   end

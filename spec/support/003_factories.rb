@@ -7,7 +7,7 @@ def sequence(pattern)
   end
 end
 
-def attrs(table)
+def table_attrs(table)
   case table
   when :user
     {
@@ -15,19 +15,20 @@ def attrs(table)
       first_name: sequence("First {{sequence}}"),
       last_name: sequence("Last {{sequence}}"),
       access_level: "viewable"
-    }
+    }.freeze
   when :unique_user
     {
       first_name: sequence("First {{sequence}}"),
       last_name: sequence("Last {{sequence}}")
-    }
+    }.freeze
   else
     raise ArgumentError, "Invalid table for factory: #{table.inspect}"
   end
 end
 
-def create(table)
+def create(table, attrs = {})
   table_name = table.to_s.pluralize
-  id = Simple::SQL.insert(table_name, attrs(table))
+  attrs = table_attrs(table).merge(attrs)
+  id = Simple::SQL.insert(table_name, attrs)
   Simple::SQL.ask("SELECT * FROM #{table_name} WHERE id=$1", id, into: OpenStruct)
 end

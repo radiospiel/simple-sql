@@ -30,7 +30,7 @@ ActiveRecord::Schema.define do
     t.integer   :role_id
     t.string    :first_name
     t.string    :last_name
-    t.hstore    :meta_data
+    t.jsonb     :metadata
     t.column    :access_level, :access_level
 
     t.timestamps null: true
