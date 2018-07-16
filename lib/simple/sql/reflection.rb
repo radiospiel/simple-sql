@@ -38,8 +38,6 @@ module Simple
         column_info(table_name).keys
       end
 
-      private
-
       def table_info(schema: "public")
         columns = if schema == "public"
                     "table_name AS name, *"
@@ -67,6 +65,8 @@ module Simple
 
         records_by_attr(recs, :column_name)
       end
+
+      private
 
       def parse_table_name(table_name)
         p1, p2 = table_name.split(".", 2)
