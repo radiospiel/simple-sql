@@ -80,16 +80,15 @@ module Simple
     def connect!(database_url = :auto)
       database_url = Config.determine_url if database_url == :auto
 
-      Logging.info "Connecting to #{database_url}"
-      config = Config.parse_url(database_url)
-
-      require "pg"
-      connection = Connection.pg_connection(PG::Connection.new(config))
+      connection = Connection.pg_connection(database_url)
       self.connector = lambda { connection }
     end
 
     # disconnects the current connection.
     def disconnect!
+      return unless connector
+
+      connection.disconnect!
       self.connector = nil
     end
   end
