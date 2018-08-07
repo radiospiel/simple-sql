@@ -14,14 +14,48 @@ class Simple::SQL::Scope
   attr_reader :per, :page
 
   # Build a scope object
+  #
+  # This call supports a few variants:
+  #
+  #     Simple::SQL::Scope.new("SELECT * FROM mytable")
+  #     Simple::SQL::Scope.new(table: "mytable", select: "*")
+  #
+  # The second option also allows one to pass in more options, like the following:
+  #
+  #     Simple::SQL::Scope.new(table: "mytable", select: "*", where: { id: 1, foo: "bar" }, order_by: "id desc")
+  #
   def initialize(sql)
-    @sql = sql
-    @args = []
+    @sql     = nil
+    @args    = []
     @filters = []
-    @order_by = nil
+
+    case sql
+    when String then @sql = sql
+    when Hash then initialize_from_hash(sql)
+    else raise ArgumentError, "Invalid argument #{sql.inspect}, must be a Hash or a String"
+    end
   end
 
   private
+
+  def initialize_from_hash(hsh)
+    actual_keys = hsh.keys
+    valid_keys = [:table, :select, :where, :order_by]
+    extra_keys = actual_keys - valid_keys
+    raise ArgumentError, "Extra keys #{extra_keys.inspect}; allowed are #{valid_keys.inspect}" unless extra_keys.empty?
+
+    # -- set table and select -------------------------------------------------
+
+    table = hsh[:table] || raise(ArgumentError, "Missing :table option")
+    select = hsh[:select] || "*"
+
+    @sql = "SELECT #{Array(select).join(', ')} FROM #{table}"
+
+    # -- apply conditions, if any ---------------------------------------------
+
+    where!(hsh[:where]) unless hsh[:where].nil?
+    order_by!(hsh[:order_by]) unless hsh[:order_by].nil?
+  end
 
   def duplicate
     dupe = SELF.new(@sql)
