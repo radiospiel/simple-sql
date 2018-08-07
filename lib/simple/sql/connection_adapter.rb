@@ -1,17 +1,21 @@
 # rubocop:disable Style/IfUnlessModifier
 # rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/MethodLength
+# rubocop:disable Metrics/CyclomaticComplexity
 
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
 #
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
+
+require_relative "row_converter"
+
 module Simple::SQL::ConnectionAdapter
   Logging = ::Simple::SQL::Logging
   Encoder = ::Simple::SQL::Encoder
   Decoder = ::Simple::SQL::Decoder
   Scope   = ::Simple::SQL::Scope
+  RowConverter = ::Simple::SQL::RowConverter
 
   # execute one or more sql statements. This method does not allow to pass in
   # arguments - since the pg client does not support this - but it allows to
@@ -37,12 +41,24 @@ module Simple::SQL::ConnectionAdapter
   # end
 
   def all(sql, *args, into: nil, &block)
-    result = exec_logged(sql, *args)
-    result = enumerate(result, into: into, &block)
+    pg_result = exec_logged(sql, *args)
+
+    # enumerate the rows in pg_result. This returns either an Array of Hashes
+    # (if into is set), or an array of row arrays or of singular values.
+    records = enumerate(pg_result, into: (into ? Hash : nil))
+
+    # [TODO] - resolve associations. Note that this is only possible if the type
+    # is not an Array (i.e. into is nil)
+
+    # convert the records into the target type.
+    records = RowConverter.convert(records, into: into) if into && into != Hash
+
     if sql.is_a?(Scope) && sql.paginated?
-      add_page_info(sql, result)
+      add_page_info(sql, records)
     end
-    result
+
+    records.each(&block) if block
+    records
   end
 
   # Runs a query and returns the first result row of a query.
@@ -91,19 +107,13 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
-  def enumerate(result, into:, &block)
-    decoder = Decoder.new(self, result, into: into)
+  def enumerate(pg_result, into:)
+    ary = []
 
-    if block
-      result.each_row do |row|
-        yield decoder.decode(row)
-      end
-      self
-    else
-      ary = []
-      result.each_row { |row| ary << decoder.decode(row) }
-      ary
-    end
+    decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
+    pg_result.each_row { |row| ary << decoder.decode(row) }
+
+    ary
   end
 
   public

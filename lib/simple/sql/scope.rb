@@ -38,6 +38,7 @@ class Simple::SQL::Scope
 
   private
 
+  # rubocop:disable Metrics/AbcSize
   def initialize_from_hash(hsh)
     actual_keys = hsh.keys
     valid_keys = [:table, :select, :where, :order_by]
