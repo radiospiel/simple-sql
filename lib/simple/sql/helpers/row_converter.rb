@@ -1,4 +1,5 @@
-module Simple::SQL::RowConverter
+module Simple::SQL::Helpers::RowConverter
+  # returns an array of converted records
   def self.convert(records, into:)
     hsh = records.first
     return records unless hsh

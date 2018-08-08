@@ -1,6 +1,4 @@
 # rubocop:disable Style/IfUnlessModifier
-# rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/CyclomaticComplexity
 
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
@@ -8,14 +6,9 @@
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
 
-require_relative "row_converter"
-
 module Simple::SQL::ConnectionAdapter
   Logging = ::Simple::SQL::Logging
-  Encoder = ::Simple::SQL::Encoder
-  Decoder = ::Simple::SQL::Decoder
   Scope   = ::Simple::SQL::Scope
-  RowConverter = ::Simple::SQL::RowConverter
 
   # execute one or more sql statements. This method does not allow to pass in
   # arguments - since the pg client does not support this - but it allows to
@@ -45,16 +38,21 @@ module Simple::SQL::ConnectionAdapter
 
     # enumerate the rows in pg_result. This returns either an Array of Hashes
     # (if into is set), or an array of row arrays or of singular values.
-    records = enumerate(pg_result, into: (into ? Hash : nil))
+    #
+    # Even if into is set to something different than a Hash, we'll convert
+    # each row into a Hash initially, and only later convert it to the final
+    # target type (via RowConverter.convert). This is to allow to fill in
+    # more entries later on.
+    records = enumerate(pg_result, into: into)
+
+    # optimization: If we wouldn't clear here the GC would do this later.
+    pg_result.clear unless pg_result.autoclear?
 
     # [TODO] - resolve associations. Note that this is only possible if the type
     # is not an Array (i.e. into is nil)
 
-    # convert the records into the target type.
-    records = RowConverter.convert(records, into: into) if into && into != Hash
-
     if sql.is_a?(Scope) && sql.paginated?
-      add_page_info(sql, records)
+      records.send(:set_pagination_info, sql)
     end
 
     records.each(&block) if block
@@ -78,19 +76,7 @@ module Simple::SQL::ConnectionAdapter
 
   private
 
-  def add_page_info(scope, results)
-    raise ArgumentError, "expect Array but get a #{results.class.name}" unless results.is_a?(Array)
-    raise ArgumentError, "per must be > 0" unless scope.per > 0
-
-    # optimization: add empty case (page <= 1 && results.empty?)
-    if scope.page <= 1 && results.empty?
-      Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: 1)
-    else
-      sql = "SELECT COUNT(*) FROM (#{scope.order_by(nil).to_sql(pagination: false)}) simple_sql_count"
-      total_count = ask(sql, *scope.args)
-      Scope::PageInfo.attach(results, total_count: total_count, per: scope.per, page: scope.page)
-    end
-  end
+  Encoder = ::Simple::SQL::Helpers::Encoder
 
   def exec_logged(sql_or_scope, *args)
     if sql_or_scope.is_a?(Scope)
@@ -107,13 +93,20 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
+  Result = ::Simple::SQL::Result
+  Decoder = ::Simple::SQL::Helpers::Decoder
+
   def enumerate(pg_result, into:)
-    ary = []
+    records = []
+    pg_source_oid = nil
 
-    decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
-    pg_result.each_row { |row| ary << decoder.decode(row) }
+    if pg_result.ntuples > 0 && pg_result.nfields > 0
+      decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
+      pg_result.each_row { |row| records << decoder.decode(row) }
+      pg_source_oid = pg_result.ftable(0)
+    end
 
-    ary
+    Result.build(records, target_type: into, pg_source_oid: pg_source_oid)
   end
 
   public

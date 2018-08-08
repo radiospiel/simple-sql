@@ -9,11 +9,9 @@ module Simple::SQL::Config
 
   # parse a DATABASE_URL, return PG::Connection settings.
   def parse_url(url)
+    expect! url => /^postgres(ql)?s?:\/\//
+
     require "uri"
-
-    raise ArgumentError, "Invalid URL #{url.inspect}" unless url.is_a?(String)
-    raise ArgumentError, "Invalid URL #{url.inspect}" unless url =~ /^postgres(ql)?s?:\/\//
-
     uri = URI.parse(url)
     raise ArgumentError, "Invalid URL #{url}" unless uri.hostname && uri.path
 

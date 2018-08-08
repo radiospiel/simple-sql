@@ -1,18 +1,20 @@
 require "forwardable"
 require "logger"
+require "expectation"
 
-require_relative "sql/version.rb"
-require_relative "sql/decoder.rb"
-require_relative "sql/encoder.rb"
-require_relative "sql/config.rb"
-require_relative "sql/logging.rb"
-require_relative "sql/simple_transactions.rb"
-require_relative "sql/scope.rb"
-require_relative "sql/connection_adapter.rb"
-require_relative "sql/connection.rb"
-require_relative "sql/reflection.rb"
-require_relative "sql/insert.rb"
-require_relative "sql/duplicate.rb"
+require_relative "sql/version"
+require_relative "sql/helpers"
+
+require_relative "sql/result"
+require_relative "sql/config"
+require_relative "sql/logging"
+require_relative "sql/simple_transactions"
+require_relative "sql/scope"
+require_relative "sql/connection_adapter"
+require_relative "sql/connection"
+require_relative "sql/reflection"
+require_relative "sql/insert"
+require_relative "sql/duplicate"
 
 module Simple
   # The Simple::SQL module

@@ -1,15 +1,8 @@
 require "time"
 
 # private
-module Simple::SQL::Decoder
+module Simple::SQL::Helpers::Decoder
   extend self
-
-  def new(connection, result, into:)
-    if into == Hash           then HashRecord.new(connection, result)
-    elsif result.nfields == 1 then SingleColumn.new(connection, result)
-    else                           MultiColumns.new(connection, result)
-    end
-  end
 
   def parse_timestamp(s)
     r = ::Time.parse(s)
@@ -79,41 +72,50 @@ module Simple::SQL::Decoder
   end
 end
 
-class Simple::SQL::Decoder::SingleColumn
-  def initialize(connection, result)
-    typename = connection.resolve_type(result.ftype(0), result.fmod(0))
-    @field_type = typename.to_sym
-  end
-
-  def decode(row)
-    value = row.first
-    value && Simple::SQL::Decoder.decode_value(@field_type, value)
-  end
-end
-
-class Simple::SQL::Decoder::MultiColumns
-  def initialize(connection, result)
-    @field_types = 0.upto(result.fields.length - 1).map do |idx|
-      typename = connection.resolve_type(result.ftype(idx), result.fmod(idx))
-      typename.to_sym
+module Simple::SQL::Helpers::Decoder
+  def self.new(connection, result, into:)
+    if into == Hash           then HashRecord.new(connection, result)
+    elsif result.nfields == 1 then SingleColumn.new(connection, result)
+    else                           MultiColumns.new(connection, result)
     end
   end
 
-  def decode(row)
-    @field_types.zip(row).map do |field_type, value|
-      value && Simple::SQL::Decoder.decode_value(field_type, value)
+  class SingleColumn
+    def initialize(connection, result)
+      typename = connection.resolve_type(result.ftype(0), result.fmod(0))
+      @field_type = typename.to_sym
+    end
+
+    def decode(row)
+      value = row.first
+      value && Simple::SQL::Helpers::Decoder.decode_value(@field_type, value)
     end
   end
-end
 
-class Simple::SQL::Decoder::HashRecord < Simple::SQL::Decoder::MultiColumns
-  def initialize(connection, result)
-    super(connection, result)
-    @field_names = result.fields.map(&:to_sym)
+  class MultiColumns
+    def initialize(connection, result)
+      @field_types = 0.upto(result.fields.length - 1).map do |idx|
+        typename = connection.resolve_type(result.ftype(idx), result.fmod(idx))
+        typename.to_sym
+      end
+    end
+
+    def decode(row)
+      @field_types.zip(row).map do |field_type, value|
+        value && Simple::SQL::Helpers::Decoder.decode_value(field_type, value)
+      end
+    end
   end
 
-  def decode(row)
-    decoded_row = super(row)
-    Hash[@field_names.zip(decoded_row)]
+  class HashRecord < MultiColumns
+    def initialize(connection, result)
+      super(connection, result)
+      @field_names = result.fields.map(&:to_sym)
+    end
+
+    def decode(row)
+      decoded_row = super(row)
+      Hash[@field_names.zip(decoded_row)]
+    end
   end
 end

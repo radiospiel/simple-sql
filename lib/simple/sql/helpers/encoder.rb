@@ -1,5 +1,5 @@
 # private
-module Simple::SQL::Encoder
+module Simple::SQL::Helpers::Encoder
   extend self
 
   def encode_args(connection, args)

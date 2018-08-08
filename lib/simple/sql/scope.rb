@@ -25,6 +25,8 @@ class Simple::SQL::Scope
   #     Simple::SQL::Scope.new(table: "mytable", select: "*", where: { id: 1, foo: "bar" }, order_by: "id desc")
   #
   def initialize(sql)
+    expect! sql => [String, Hash]
+
     @sql     = nil
     @args    = []
     @filters = []
@@ -32,7 +34,6 @@ class Simple::SQL::Scope
     case sql
     when String then @sql = sql
     when Hash then initialize_from_hash(sql)
-    else raise ArgumentError, "Invalid argument #{sql.inspect}, must be a Hash or a String"
     end
   end
 
@@ -80,19 +81,5 @@ class Simple::SQL::Scope
     sql = apply_pagination(sql, pagination: pagination)
 
     sql
-  end
-
-  # The Scope::PageInfo module can be mixed into other objects to
-  # hold total_count, total_pages, and current_page.
-  module PageInfo
-    attr_reader :total_count, :total_pages, :current_page
-
-    def self.attach(results, total_count:, per:, page:)
-      results.extend(self)
-      results.instance_variable_set :@total_count, total_count
-      results.instance_variable_set :@total_pages, (total_count + (per - 1)) / per
-      results.instance_variable_set :@current_page, page
-      results
-    end
   end
 end

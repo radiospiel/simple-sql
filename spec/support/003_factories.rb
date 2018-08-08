@@ -21,6 +21,10 @@ def table_attrs(table)
       first_name: sequence("First {{sequence}}"),
       last_name: sequence("Last {{sequence}}")
     }.freeze
+  when :organization
+    {
+      name: sequence("organization {{sequence}}")
+    }.freeze
   else
     raise ArgumentError, "Invalid table for factory: #{table.inspect}"
   end
