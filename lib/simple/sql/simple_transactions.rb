@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/MethodLength
 # rubocop:disable Style/IfUnlessModifier
 
 # private

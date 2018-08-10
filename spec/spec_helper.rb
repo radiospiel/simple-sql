@@ -6,6 +6,7 @@ end
 ENV["RACK_ENV"] = "test"
 ENV["RAILS_ENV"] = "test"
 
+require "byebug"
 require "rspec"
 require "awesome_print"
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
@@ -30,8 +31,7 @@ RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec.data"
 
   config.around(:each) do |example|
-    Simple::SQL.ask "DELETE FROM users"
-    Simple::SQL.ask "DELETE FROM unique_users"
+    Simple::SQL.ask "TRUNCATE TABLE users, unique_users, organizations RESTART IDENTITY CASCADE"
     example.run
   end
 end

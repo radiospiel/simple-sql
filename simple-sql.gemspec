@@ -29,6 +29,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'pg_array_parser', '~> 0'
   gem.add_dependency 'pg', '~> 0.20'
+  gem.add_dependency 'expectation', '~> 1'
 
   # optional gems (required by some of the parts)
 

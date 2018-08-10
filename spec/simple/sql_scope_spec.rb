@@ -203,6 +203,21 @@ describe "Simple::SQL::Scope" do
     end
   end
 
+  context "Building with Hash" do
+    it "runs with SQL.ask" do
+      scope = SQL::Scope.new table: "users", select: "1, 2", where: "id >= 0"
+      expect(SQL.all(scope)).to eq([[1,2], [1,2]])
+
+      scope = SQL::Scope.new table: "users", select: [1,3,4], where: "id >= 0"
+      expect(SQL.all(scope)).to eq([[1,3,4], [1,3,4]])
+    end
+    
+    it "raises an error with missing or invalid attributes" do
+      expect { SQL::Scope.new table: "users", limit: 1 }.to raise_error(ArgumentError)
+      expect { SQL::Scope.new select: "*" }.to raise_error(ArgumentError)
+    end
+  end
+
   context "describe pagination" do
     let(:scope) do
       scope = SQL::Scope.new "SELECT 1, 2 FROM users"

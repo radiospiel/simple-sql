@@ -1,16 +1,13 @@
 # rubocop:disable Style/IfUnlessModifier
-# rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/MethodLength
 
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
 #
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
+
 module Simple::SQL::ConnectionAdapter
   Logging = ::Simple::SQL::Logging
-  Encoder = ::Simple::SQL::Encoder
-  Decoder = ::Simple::SQL::Decoder
   Scope   = ::Simple::SQL::Scope
 
   # execute one or more sql statements. This method does not allow to pass in
@@ -37,12 +34,29 @@ module Simple::SQL::ConnectionAdapter
   # end
 
   def all(sql, *args, into: nil, &block)
-    result = exec_logged(sql, *args)
-    result = enumerate(result, into: into, &block)
+    pg_result = exec_logged(sql, *args)
+
+    # enumerate the rows in pg_result. This returns either an Array of Hashes
+    # (if into is set), or an array of row arrays or of singular values.
+    #
+    # Even if into is set to something different than a Hash, we'll convert
+    # each row into a Hash initially, and only later convert it to the final
+    # target type (via RowConverter.convert). This is to allow to fill in
+    # more entries later on.
+    records = enumerate(pg_result, into: into)
+
+    # optimization: If we wouldn't clear here the GC would do this later.
+    pg_result.clear unless pg_result.autoclear?
+
+    # [TODO] - resolve associations. Note that this is only possible if the type
+    # is not an Array (i.e. into is nil)
+
     if sql.is_a?(Scope) && sql.paginated?
-      add_page_info(sql, result)
+      records.send(:set_pagination_info, sql)
     end
-    result
+
+    records.each(&block) if block
+    records
   end
 
   # Runs a query and returns the first result row of a query.
@@ -62,19 +76,7 @@ module Simple::SQL::ConnectionAdapter
 
   private
 
-  def add_page_info(scope, results)
-    raise ArgumentError, "expect Array but get a #{results.class.name}" unless results.is_a?(Array)
-    raise ArgumentError, "per must be > 0" unless scope.per > 0
-
-    # optimization: add empty case (page <= 1 && results.empty?)
-    if scope.page <= 1 && results.empty?
-      Scope::PageInfo.attach(results, total_count: 0, per: scope.per, page: 1)
-    else
-      sql = "SELECT COUNT(*) FROM (#{scope.order_by(nil).to_sql(pagination: false)}) simple_sql_count"
-      total_count = ask(sql, *scope.args)
-      Scope::PageInfo.attach(results, total_count: total_count, per: scope.per, page: scope.page)
-    end
-  end
+  Encoder = ::Simple::SQL::Helpers::Encoder
 
   def exec_logged(sql_or_scope, *args)
     if sql_or_scope.is_a?(Scope)
@@ -91,19 +93,20 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
-  def enumerate(result, into:, &block)
-    decoder = Decoder.new(self, result, into: into)
+  Result = ::Simple::SQL::Result
+  Decoder = ::Simple::SQL::Helpers::Decoder
 
-    if block
-      result.each_row do |row|
-        yield decoder.decode(row)
-      end
-      self
-    else
-      ary = []
-      result.each_row { |row| ary << decoder.decode(row) }
-      ary
+  def enumerate(pg_result, into:)
+    records = []
+    pg_source_oid = nil
+
+    if pg_result.ntuples > 0 && pg_result.nfields > 0
+      decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
+      pg_result.each_row { |row| records << decoder.decode(row) }
+      pg_source_oid = pg_result.ftable(0)
     end
+
+    Result.build(records, target_type: into, pg_source_oid: pg_source_oid)
   end
 
   public

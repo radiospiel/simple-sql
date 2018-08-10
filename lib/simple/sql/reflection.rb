@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/MethodLength
-
 module Simple
   module SQL
     module Reflection
