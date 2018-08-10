@@ -37,14 +37,8 @@ module Simple
       end
 
       def table_info(schema: "public")
-        columns = if schema == "public"
-                    "table_name AS name, *"
-                  else
-                    "table_schema || '.' || table_name AS name, *"
-                  end
-
         recs = all <<~SQL, schema, into: Hash
-          SELECT #{columns}
+          SELECT table_schema || '.' || table_name AS name, *
           FROM information_schema.tables
           WHERE table_schema=$1
           SQL

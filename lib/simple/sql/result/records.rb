@@ -19,7 +19,6 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
 
   AssociationLoader = ::Simple::SQL::Result::AssociationLoader
 
-
   # Preloads an association.
   #
   # This can now be used as follows:
@@ -45,7 +44,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
     expect! as => [nil, Symbol]
 
     # resolve oid into table and schema name.
-    schema, host_table = SQL.ask <<~SQL, @pg_source_oid
+    schema, host_table = ::Simple::SQL.ask <<~SQL, @pg_source_oid
       SELECT nspname AS schema, relname AS host_table
       FROM pg_class
       JOIN pg_namespace ON pg_namespace.oid=pg_class.relnamespace

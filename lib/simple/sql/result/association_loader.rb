@@ -20,13 +20,13 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   #
   # Raises an ArgumentError if no matching table can be found.
   def find_associated_table(association, schema:)
-    association = association.to_s
+    fq_association = "#{schema}.#{association}"
 
     tables_in_schema = ::Simple::SQL::Reflection.table_info(schema: schema).keys
 
-    return "#{schema}.#{association}"              if tables_in_schema.include?(association)
-    return "#{schema}.#{association.singularize}"  if tables_in_schema.include?(association.singularize)
-    return "#{schema}.#{association.pluralize}"    if tables_in_schema.include?(association.pluralize)
+    return fq_association              if tables_in_schema.include?(fq_association)
+    return fq_association.singularize  if tables_in_schema.include?(fq_association.singularize)
+    return fq_association.pluralize    if tables_in_schema.include?(fq_association.pluralize)
 
     raise ArgumentError, "Don't know how to find foreign table for association #{association.inspect}"
   end
@@ -46,6 +46,9 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   # Raises an ArgumentError if no association can be found between these tables.
   #
   def find_matching_relation(host_table, associated_table)
+    expect! host_table => /^[^.]+.[^.]+$/
+    expect! associated_table => /^[^.]+.[^.]+$/
+
     sql = <<~SQL
       WITH foreign_keys AS(
         SELECT
@@ -67,10 +70,16 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     SQL
 
     relations = SQL.all(sql, host_table, associated_table, into: :struct)
-    raise ArgumentError, "Found two potential matches for the #{association.inspect} relation" if relations.length > 1
-    raise ArgumentError, "Found no potential match for the #{association.inspect} relation" if relations.empty?
 
-    relations.first
+    return relations.first if relations.length == 1
+
+    description = "relation between #{host_table.inspect} and #{associated_table.inspect}"
+
+    if relations.empty?
+      raise "Didn't find any potential match for #{description}"
+    else
+      raise "Found two or more potential matches for #{description}"
+    end
   end
 
   # preloads a belongs_to association.

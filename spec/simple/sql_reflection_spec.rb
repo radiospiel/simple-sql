@@ -13,7 +13,7 @@ describe "Simple::SQL::Reflection" do
 
   describe ".tables" do
     it "returns the tables in the public schema" do
-      expect(SQL::Reflection.tables).to include("users")
+      expect(SQL::Reflection.tables).to include("public.users")
     end
 
     it "returns tables in a non-'public' schema" do
