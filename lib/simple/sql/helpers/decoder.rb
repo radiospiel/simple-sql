@@ -12,7 +12,6 @@ module Simple::SQL::Helpers::Decoder
 
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/CyclomaticComplexity
-  # rubocop:disable Metrics/MethodLength
   def decode_value(type, s)
     case type
     when :unknown                       then s
