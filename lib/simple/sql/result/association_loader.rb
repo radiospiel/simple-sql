@@ -1,6 +1,7 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
 # rubocop:disable Metrics/ParameterLists
+# rubocop:disable Style/GuardClause
 
 #
 # This module implements a pretty generic AssociationLoader.
