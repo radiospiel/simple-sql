@@ -1,7 +1,9 @@
+# xrubocop:disable Metrics/ParameterLists
+
 require_relative "association_loader"
 
 class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
-  def initialize(records, target_type:, pg_source_oid:)
+  def initialize(records, target_type:, pg_source_oid:) # :nodoc:
     expect! records.first => Hash unless records.empty?
 
     super(records)
@@ -17,6 +19,27 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
 
   AssociationLoader = ::Simple::SQL::Result::AssociationLoader
 
+
+  # Preloads an association.
+  #
+  # This can now be used as follows:
+  #
+  #     scope = SQL::Scope.new("SELECT * FROM users")
+  #     results = SQL.all scope, into: :struct
+  #     results.preload(:organization)
+  #
+  # The preload method uses foreign key definitions in the database to figure out
+  # which table to load from.
+  #
+  # This method is only available if <tt>into:</tt> was set in the call to <tt>SQL.all</tt>.
+  # It raises an error otherwise.
+  #
+  # Parameters:
+  #
+  # - association: the name of the association.
+  # - as: the target name of the association.
+  # - order_by: if set describes ordering; see Scope#order_by.
+  # - limit: if set describes limits; see Scope#order_by.
   def preload(association, as: nil, order_by: nil, limit: nil)
     expect! association => Symbol
     expect! as => [nil, Symbol]

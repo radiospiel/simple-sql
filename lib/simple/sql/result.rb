@@ -24,36 +24,4 @@ class ::Simple::SQL::Result < Array
   attr_reader :total_count
   attr_reader :total_pages
   attr_reader :current_page
-
-  # rubocop:disable Lint/UnusedMethodArgument
-  # xrubocop:disable Metrics/ParameterLists
-
-  # Preloads an association.
-  #
-  # This can now be used as follows:
-  #
-  #     scope = SQL::Scope.new("SELECT * FROM users")
-  #     results = SQL.all scope, into: :struct
-  #     results.preload(:organization)
-  #
-  # The preload method uses foreign key definitions in the database to figure out
-  # which table to load from.
-  #
-  # This method is only available if <tt>into:</tt> was set in the call to <tt>SQL.all</tt>.
-  # It raises an error otherwise.
-  #
-  # Parameters:
-  #
-  # - association: the name of the association.
-  # - as: the target name of the association.
-  # - order_by: if set describes ordering; see Scope#order_by.
-  # - limit: if set describes limits; see Scope#order_by.
-  #
-  # <b>Notes:</b> The actual implementation of this method can be found in
-  # ::Simple::SQL::Result::Records#preload.
-  def preload(association, as: nil, order_by: nil, limit: nil)
-    expect! association => Symbol
-
-    raise "preload is not implemented in #{self.class.name}"
-  end
 end
