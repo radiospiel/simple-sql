@@ -1,5 +1,6 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/MethodLength
+# rubocop:disable Metrics/ParameterLists
 
 #
 # This module implements a pretty generic AssociationLoader.
@@ -91,13 +92,28 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   end
 
   # preloads a has_one or has_many association.
-  def preload_has_one_or_many(records, relation, as:)
+  def preload_has_one_or_many(records, relation, as:, order_by:, limit:)
+    if limit
+      # To really make sense limit must be implemented using window
+      # functions, because one (or, at lieast, I) would expect this code
+      #
+      #   organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      #   organizations.preload :users, limit: 2, order_by: "id DESC"
+      #
+      # to return up to two users **per organization**.
+      #
+      raise "Support for limit: is not implemented yet!"
+    end
+
     belonging_column  = relation.belonging_column.to_sym
     having_column     = relation.having_column.to_sym
 
     host_ids  = H.pluck(records, having_column).uniq.compact
+
     scope     = SQL::Scope.new(table: relation.belonging_table)
     scope     = scope.where(belonging_column => host_ids)
+    scope     = scope.order_by(order_by) if order_by
+
     recs      = SQL.all(scope, into: Hash)
 
     if as.to_s.singularize == as.to_s
@@ -122,7 +138,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   # - host_table: the name of the table \a records has been loaded from.
   # - schema: the schema name in the database.
   # - as: the name to sue for the association. Defaults to +association+
-  def preload(records, association, host_table:, schema:, as:)
+  def preload(records, association, host_table:, schema:, as:, order_by:, limit:)
     return records if records.empty?
 
     expect! records.first => Hash
@@ -134,9 +150,12 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     relation         = find_matching_relation(fq_host_table, associated_table)
 
     if fq_host_table == relation.belonging_table
+      if order_by || limit
+        raise ArgumentError, "#{association.inspect} is a singular association, w/o support for order_by: and limit:"
+      end
       preload_belongs_to records, relation, as: as
     else
-      preload_has_one_or_many records, relation, as: as
+      preload_has_one_or_many records, relation, as: as, order_by: order_by, limit: limit
     end
   end
 end

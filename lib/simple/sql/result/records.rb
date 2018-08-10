@@ -17,9 +17,9 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
 
   AssociationLoader = ::Simple::SQL::Result::AssociationLoader
 
-  def preload(association, as: nil)
+  def preload(association, as: nil, order_by: nil, limit: nil)
     expect! association => Symbol
-    expect! as => [ nil, Symbol ]
+    expect! as => [nil, Symbol]
 
     # resolve oid into table and schema name.
     schema, host_table = SQL.ask <<~SQL, @pg_source_oid
@@ -29,7 +29,9 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
       WHERE pg_class.oid=$1
     SQL
 
-    AssociationLoader.preload @hash_records, association.to_sym, host_table: host_table, schema: schema, as: as
+    AssociationLoader.preload @hash_records, association,
+                              host_table: host_table, schema: schema, as: as,
+                              order_by: order_by, limit: limit
     materialize
   end
 

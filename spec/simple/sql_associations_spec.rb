@@ -1,5 +1,15 @@
 require "spec_helper"
 
+module ArrayPluck
+  refine Array do
+    def pluck(key)
+      map { |e| e.fetch(key) }
+    end
+  end
+end
+
+using ArrayPluck
+
 describe "Simple::SQL::Result#preload" do
   let!(:org1)     { create(:organization) }
   let!(:users1)   { 1.upto(USER_COUNT).map { create(:user, organization_id: org1.id) } }
@@ -88,6 +98,45 @@ describe "Simple::SQL::Result#preload" do
       organization = organizations.first
       users_of_organization = SQL.all "SELECT * FROM users WHERE organization_id=$1", organization[:id], into: Hash
       expect(users_of_organization).to include(organization[:usr])
+    end
+  end
+
+  describe ":order_by" do
+    it "supports order_by" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :users, order_by: "id"
+      users = organizations.first[:users]
+
+      ordered_user_ids = SQL.all("SELECT id FROM users WHERE organization_id=$1 ORDER BY id", organizations.first[:id])
+      expect(users.pluck(:id)).to eq(ordered_user_ids)
+    end
+    
+    it "supports order_by DESC" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :users, order_by: "id DESC"
+      users = organizations.first[:users] 
+
+      ordered_user_ids = SQL.all("SELECT id FROM users WHERE organization_id=$1 ORDER BY id", organizations.first[:id])
+      expect(users.pluck(:id)).to eq(ordered_user_ids.reverse)
+    end
+  end
+
+  describe ":limit" do
+    xit "limits the number of returned records" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :users, limit: 1
+
+      expect(organizations.first[:users].length).to eq(1)
+    end
+
+    xit "limits the number of returned records" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :users, limit: 2, order_by: "id"
+      users = organizations.first[:users]
+      expect(users.length).to eq(2)
+
+      ordered_user_ids = SQL.all("SELECT id FROM users WHERE organization_id=$1 ORDER BY id", organizations.first[:id])
+      expect(users.pluck(:id)).to eq(ordered_user_ids)
     end
   end
 end

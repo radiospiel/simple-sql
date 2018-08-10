@@ -27,7 +27,7 @@ class Simple::SQL::Scope
   def apply_order_and_limit(sql)
     sql = "#{sql} ORDER BY #{@order_by_fragment}" if @order_by_fragment
     sql = "#{sql} LIMIT #{@limit}" if @limit
-    
+
     sql
   end
 end
