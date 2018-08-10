@@ -37,7 +37,16 @@ class ::Simple::SQL::Result < Array
   # which table to load from.
   #
   # This method is only available if <tt>into:</tt> was set in the call to <tt>SQL.all</tt>.
-  def preload(association)
+  # It raises an error otherwise.
+  #
+  # Parameters:
+  #
+  # - association: the name of the association.
+  # - as: the target name of the association.
+  #
+  # <b>Notes:</b> The actual implementation of this method can be found in
+  # ::Simple::SQL::Result::Records#preload.
+  def preload(association, as: nil)
     expect! association => Symbol
 
     raise "preload is not implemented in #{self.class.name}"

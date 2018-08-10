@@ -62,4 +62,32 @@ describe "Simple::SQL::Result#preload" do
       expect(users_of_organization).to include(organization[:user])
     end
   end
+
+  describe ":as option" do
+    it "renames a belongs_to association" do
+      users = SQL.all "SELECT * FROM users WHERE organization_id=$1", org1.id, into: Hash
+      users.preload :organization, as: :org
+
+      expect(users.first.keys).not_to include(:organization)
+      expect(users.first[:org]).to eq(org1.to_h)
+    end
+
+    it "renames a has_many association" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :users, as: :members
+
+      expect(organizations.first.keys).not_to include(:users)
+      expect(organizations.first[:members]).to eq(users1.map(&:to_h))
+    end
+
+    it "detects a has_one association" do
+      organizations = SQL.all "SELECT * FROM organizations", into: Hash
+      organizations.preload :user, as: :usr
+      expect(organizations.first.keys).not_to include(:user)
+  
+      organization = organizations.first
+      users_of_organization = SQL.all "SELECT * FROM users WHERE organization_id=$1", organization[:id], into: Hash
+      expect(users_of_organization).to include(organization[:usr])
+    end
+  end
 end

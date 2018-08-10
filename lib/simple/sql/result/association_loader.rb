@@ -121,20 +121,22 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   # - association: the name of the association
   # - host_table: the name of the table \a records has been loaded from.
   # - schema: the schema name in the database.
-  def preload(records, association, host_table:, schema:)
+  # - as: the name to sue for the association. Defaults to +association+
+  def preload(records, association, host_table:, schema:, as:)
     return records if records.empty?
 
     expect! records.first => Hash
 
+    as = association if as.nil?
     fq_host_table = "#{schema}.#{host_table}"
 
     associated_table = find_associated_table(association, schema: schema)
     relation         = find_matching_relation(fq_host_table, associated_table)
 
     if fq_host_table == relation.belonging_table
-      preload_belongs_to records, relation, as: association
+      preload_belongs_to records, relation, as: as
     else
-      preload_has_one_or_many records, relation, as: association
+      preload_has_one_or_many records, relation, as: as
     end
   end
 end
