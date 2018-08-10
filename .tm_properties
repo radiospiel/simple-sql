@@ -1,0 +1,9 @@
+# Settings
+fontName         = "Menlo"
+fontSize         = 13
+fileBrowserGlob  = "{*,.tm_properties,.htaccess,}"
+excludeDirectories = "{node_modules,coverage,log,}"
+
+# Variables
+PATH             = "$PATH:$HOME/bin"
+TM_GIT           = "/opt/local/bin/git"

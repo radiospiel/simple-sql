@@ -3,3 +3,7 @@ rdoc
 pkg
 log/test.log
 .rspec.data
+Gemfile.lock
+.rake_t_cache
+.rspec.status
+simple-sql-0.4.10.gem
