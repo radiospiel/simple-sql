@@ -5,6 +5,10 @@ class Simple::SQL::Scope
     duplicate.send(:order_by!, sql_fragment)
   end
 
+  def limit(count)
+    duplicate.send(:limit!, count)
+  end
+
   private
 
   # Adjust sort order
@@ -13,9 +17,17 @@ class Simple::SQL::Scope
     self
   end
 
+  # Adjust sort order
+  def limit!(count)
+    @limit = count
+    self
+  end
+
   # called from to_sql
-  def apply_order(sql)
-    return sql unless @order_by_fragment
-    "#{sql} ORDER BY #{@order_by_fragment}"
+  def apply_order_and_limit(sql)
+    sql = "#{sql} ORDER BY #{@order_by_fragment}" if @order_by_fragment
+    sql = "#{sql} LIMIT #{@limit}" if @limit
+    
+    sql
   end
 end

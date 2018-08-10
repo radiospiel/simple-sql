@@ -66,6 +66,7 @@ class Simple::SQL::Scope
     dupe.instance_variable_set :@per, @per
     dupe.instance_variable_set :@page, @page
     dupe.instance_variable_set :@order_by_fragment, @order_by_fragment
+    dupe.instance_variable_set :@limit, @limit
     dupe
   end
 
@@ -77,7 +78,7 @@ class Simple::SQL::Scope
 
     sql = @sql
     sql = apply_filters(sql)
-    sql = apply_order(sql)
+    sql = apply_order_and_limit(sql)
     sql = apply_pagination(sql, pagination: pagination)
 
     sql
