@@ -11,6 +11,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
     @hash_records   = records
     @target_type    = target_type
     @pg_source_oid  = pg_source_oid
+    @associations   = []
 
     materialize
   end
@@ -54,6 +55,9 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
     AssociationLoader.preload @hash_records, association,
                               host_table: host_table, schema: schema, as: as,
                               order_by: order_by, limit: limit
+
+    @associations << association
+
     materialize
   end
 
@@ -64,7 +68,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
 
   def materialize
     records = @hash_records
-    records = RowConverter.convert_ary(records, into: @target_type) if @target_type != Hash
+    records = RowConverter.convert_row(records, associations: @associations, into: @target_type) if @target_type != Hash
     replace(records)
   end
 end

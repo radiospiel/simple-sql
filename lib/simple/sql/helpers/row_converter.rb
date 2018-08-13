@@ -1,75 +1,85 @@
-module Simple::SQL::Helpers::RowConverter # :private:
+module Simple::SQL::Helpers::RowConverter
   SELF = self
 
   # returns an array of converted records
-  def self.convert_ary(records, into:)
+  def self.convert_row(records, into:, associations: nil)
     hsh = records.first
     return records unless hsh
 
     converter = if into == :struct
-                  StructConverter.for(attributes: hsh.keys)
+                  StructConverter.for(attributes: hsh.keys, associations: associations)
                 else
-                  TypeConverter.for(type: into)
+                  TypeConverter.for(type: into, associations: associations)
                 end
 
-    records.map { |record| converter.convert_ary(record) }
+    records.map { |record| converter.convert_row(record) }
   end
 
   def self.convert(record, into:) # :nodoc:
-    ary = convert_ary([record], into: into)
+    ary = convert_row([record], into: into)
     ary.first
   end
 
   class TypeConverter #:nodoc:
-    def self.for(type:)
-      new(type: type)
+    def self.for(type:, associations:)
+      new(type: type, associations: associations)
     end
 
-    def initialize(type:)
-      @type = type
+    def initialize(type:, associations:)
+      @type         = type
+      @associations = associations
     end
 
-    def convert_ary(hsh)
+    def convert_row(hsh)
+      hsh = convert_associations(hsh) if @associations
+      @type.new hsh
+    end
+
+    def convert_associations(hsh)
       updates = {}
-      hsh.each do |key, value|
+
+      @associations.each do |key|
+        value = hsh.fetch(key)
         case value
         when Hash   then updates[key] = SELF.convert(value, into: @type)
-        when Array  then updates[key] = SELF.convert_ary(value, into: @type)
+        when Array  then updates[key] = SELF.convert_row(value, into: @type)
         end
       end
 
-      hsh = hsh.merge(updates)
-
-      @type.new hsh
+      hsh.merge(updates)
     end
   end
 
   class StructConverter # :nodoc:
-    def self.for(attributes:)
+    def self.for(attributes:, associations:)
       @cache ||= {}
-      @cache[attributes] ||= new(attributes)
+      @cache[[attributes, associations]] ||= new(attributes: attributes, associations: associations)
     end
 
-    def initialize(attributes)
+    def initialize(attributes:, associations:)
+      @attributes          = attributes
+      @associations        = associations
+      @association_indices = associations.map { |association| attributes.index(association) } if associations
+
       @klass = Struct.new(*attributes)
     end
 
-    def convert_ary(hsh)
-      values = hsh.values_at(*@klass.members)
-      updates = {}
+    def convert_row(hsh)
+      values = hsh.values_at(*@attributes)
 
-      values.each_with_index do |value, idx|
+      convert_associations(values) if @associations
+      @klass.new(*values)
+    end
+
+    # convert values at the <tt>@association_indices</tt>.
+    def convert_associations(values)
+      @association_indices.each do |idx|
+        value = values[idx]
         case value
-        when Hash   then updates[idx] = SELF.convert(value, into: :struct)
-        when Array  then updates[idx] = SELF.convert_ary(value, into: :struct)
+        when Hash   then values[idx] = SELF.convert(value, into: :struct)
+        when Array  then values[idx] = SELF.convert_row(value, into: :struct)
         end
       end
-
-      updates.each do |idx, updated_value|
-        values[idx] = updated_value
-      end
-
-      @klass.new(*values)
     end
   end
 end
