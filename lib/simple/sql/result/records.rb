@@ -64,8 +64,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
 
   def materialize
     records = @hash_records
-    records = RowConverter.convert(records, into: @target_type) if @target_type != Hash
-
+    records = RowConverter.convert_ary(records, into: @target_type) if @target_type != Hash
     replace(records)
   end
 end
