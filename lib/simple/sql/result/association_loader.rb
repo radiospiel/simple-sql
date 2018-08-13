@@ -103,17 +103,16 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
 
   # preloads a has_one or has_many association.
   def preload_has_one_or_many(records, relation, as:, order_by:, limit:)
-    if limit
-      # To really make sense limit must be implemented using window
-      # functions, because one (or, at lieast, I) would expect this code
-      #
-      #   organizations = SQL.all "SELECT * FROM organizations", into: Hash
-      #   organizations.preload :users, limit: 2, order_by: "id DESC"
-      #
-      # to return up to two users **per organization**.
-      #
-      raise "Support for limit: is not implemented yet!"
-    end
+    # To really make sense limit must be implemented using window
+    # functions, because one (or, at lieast, I) would expect this code
+    #
+    #   organizations = SQL.all "SELECT * FROM organizations", into: Hash
+    #   organizations.preload :users, limit: 2, order_by: "id DESC"
+    #
+    # to return up to two users **per organization**.
+    #
+    raise "Support for limit: is not implemented yet!" if limit
+    raise "Support for order_by: is not implemented yet!" if order_by && as.to_s.singularize == as.to_s
 
     belonging_column  = relation.belonging_column.to_sym
     having_column     = relation.having_column.to_sym

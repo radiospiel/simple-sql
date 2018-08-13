@@ -2,7 +2,7 @@
 
 require_relative "association_loader"
 
-class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
+class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
   def initialize(records, target_type:, pg_source_oid:) # :nodoc:
     expect! records.first => Hash unless records.empty?
 
