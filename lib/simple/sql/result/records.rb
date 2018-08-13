@@ -2,7 +2,7 @@
 
 require_relative "association_loader"
 
-class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
+class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
   def initialize(records, target_type:, pg_source_oid:) # :nodoc:
     expect! records.first => Hash unless records.empty?
 
@@ -64,8 +64,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result::Rows
 
   def materialize
     records = @hash_records
-    records = RowConverter.convert(records, into: @target_type) if @target_type != Hash
-
+    records = RowConverter.convert_ary(records, into: @target_type) if @target_type != Hash
     replace(records)
   end
 end

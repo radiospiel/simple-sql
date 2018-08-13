@@ -41,7 +41,7 @@ module Simple::SQL::ConnectionAdapter
     #
     # Even if into is set to something different than a Hash, we'll convert
     # each row into a Hash initially, and only later convert it to the final
-    # target type (via RowConverter.convert). This is to allow to fill in
+    # target type (via RowConverter.convert_ary). This is to allow to fill in
     # more entries later on.
     records = enumerate(pg_result, into: into)
 

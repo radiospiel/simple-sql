@@ -66,7 +66,7 @@ describe "Simple::SQL::Result#preload" do
     it "detects a has_one association" do
       organizations = SQL.all "SELECT * FROM organizations", into: Hash
       organizations.preload :user
-  
+
       organization = organizations.first
       users_of_organization = SQL.all "SELECT * FROM users WHERE organization_id=$1", organization[:id], into: Hash
       expect(users_of_organization).to include(organization[:user])
@@ -94,10 +94,45 @@ describe "Simple::SQL::Result#preload" do
       organizations = SQL.all "SELECT * FROM organizations", into: Hash
       organizations.preload :user, as: :usr
       expect(organizations.first.keys).not_to include(:user)
-  
+
       organization = organizations.first
       users_of_organization = SQL.all "SELECT * FROM users WHERE organization_id=$1", organization[:id], into: Hash
       expect(users_of_organization).to include(organization[:usr])
+    end
+  end
+
+
+  describe ":into option" do
+    it "creates a :struct for singular association" do
+      users = SQL.all "SELECT * FROM users WHERE organization_id=$1", org1.id, into: :struct
+      users.preload :organization
+
+      expect(users.first.class.superclass).to eq(Struct)
+      expect(users.first.organization.class.superclass).to eq(Struct)
+    end
+
+    it "creates a :struct for array associations" do
+      organizations = SQL.all "SELECT * FROM organizations", into: :struct
+      organizations.preload :users
+      expect(organizations.first.class.superclass).to eq(Struct)
+
+      expect(organizations.first.users.first.class.superclass).to eq(Struct)
+    end
+
+    it "creates a OpenStruct for singular association" do
+      users = SQL.all "SELECT * FROM users WHERE organization_id=$1", org1.id, into: OpenStruct
+      users.preload :organization
+
+      expect(users.first).to be_a(OpenStruct)
+      expect(users.first.organization).to be_a(OpenStruct)
+    end
+
+    it "creates a OpenStruct for array associations" do
+      organizations = SQL.all "SELECT * FROM organizations", into: OpenStruct
+      organizations.preload :users
+      expect(organizations.first).to be_a(OpenStruct)
+
+      expect(organizations.first.users.first).to be_a(OpenStruct)
     end
   end
 
@@ -110,11 +145,11 @@ describe "Simple::SQL::Result#preload" do
       ordered_user_ids = SQL.all("SELECT id FROM users WHERE organization_id=$1 ORDER BY id", organizations.first[:id])
       expect(users.pluck(:id)).to eq(ordered_user_ids)
     end
-    
+
     it "supports order_by DESC" do
       organizations = SQL.all "SELECT * FROM organizations", into: Hash
       organizations.preload :users, order_by: "id DESC"
-      users = organizations.first[:users] 
+      users = organizations.first[:users]
 
       ordered_user_ids = SQL.all("SELECT id FROM users WHERE organization_id=$1 ORDER BY id", organizations.first[:id])
       expect(users.pluck(:id)).to eq(ordered_user_ids.reverse)
