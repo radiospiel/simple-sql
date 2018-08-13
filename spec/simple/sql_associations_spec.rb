@@ -134,6 +134,16 @@ describe "Simple::SQL::Result#preload" do
 
       expect(organizations.first.users.first).to be_a(OpenStruct)
     end
+
+    it "only touches associations, leaving non-associated hashes and arrays alone" do
+      organizations = SQL.all "SELECT id, ARRAY[10000] AS ary FROM organizations", into: OpenStruct
+      expect(organizations.first.ary).to eq([10000])
+    end
+
+    it "only touches associations, leaving non-associated hashes and arrays alone" do
+      organizations = SQL.all "SELECT id, ARRAY[10000] AS ary FROM organizations", into: :struct
+      expect(organizations.first.ary).to eq([10000])
+    end
   end
 
   describe ":order_by" do
