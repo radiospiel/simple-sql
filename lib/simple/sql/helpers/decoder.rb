@@ -7,7 +7,7 @@ module Simple::SQL::Helpers::Decoder
   def parse_timestamp(s)
     r = ::Time.parse(s)
     return r if r.utc_offset == 0
-    Time.gm(r.year, r.mon, r.day, r.hour, r.min, r.sec)
+    Time.gm(r.year, r.mon, r.day, r.hour, r.min, r.sec, r.usec)
   end
 
   # rubocop:disable Metrics/AbcSize
