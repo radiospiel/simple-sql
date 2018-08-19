@@ -59,6 +59,14 @@ module Simple::SQL::ConnectionAdapter
     records
   end
 
+  # Runs a query and prints the results via "table_print"
+  def print(sql, *args)
+    require "table_print"
+    records = all sql, *args, into: Hash
+    tp records
+    records
+  end
+
   # Runs a query and returns the first result row of a query.
   #
   # Examples:
