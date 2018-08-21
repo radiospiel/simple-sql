@@ -60,7 +60,8 @@ module Simple::SQL::ConnectionAdapter
   end
 
   # Runs a query and prints the results via "table_print"
-  def print(sql, *args)
+  def print(sql, *args, into: nil)
+    raise ArgumentError, "You cannot call Simple::SQL.print with into: #{into.inspect}" unless into.nil?
     require "table_print"
     records = all sql, *args, into: Hash
     tp records
