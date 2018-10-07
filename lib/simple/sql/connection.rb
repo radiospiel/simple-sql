@@ -49,7 +49,7 @@ module Simple::SQL::Connection
 
     extend Forwardable
     delegate [:transaction] => :connection            # transactions
-    delegate [:wait_for_notify] => :connection        # wait_for_notify
+    delegate [:wait_for_notify] => :raw_connection    # wait_for_notify
 
     def raw_connection
       ActiveRecord::Base.connection.raw_connection
