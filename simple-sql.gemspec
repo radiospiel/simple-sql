@@ -31,6 +31,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'pg', '~> 0.20'
   gem.add_dependency 'expectation', '~> 1'
 
+  gem.add_dependency 'json_schemer'
+
   # optional gems (required by some of the parts)
 
   # development gems

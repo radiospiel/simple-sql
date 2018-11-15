@@ -9,6 +9,9 @@ SimpleCov.start do
   add_filter do |src|
     src.filename =~ /\/spec\//
   end
+  add_filter do |src|
+    src.filename =~ /\/lib\/simple\/sql/
+  end
 
   minimum_coverage 90
 end
