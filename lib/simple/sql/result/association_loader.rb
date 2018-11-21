@@ -3,6 +3,8 @@
 # rubocop:disable Metrics/ParameterLists
 # rubocop:disable Style/GuardClause
 
+require "active_support/core_ext/string/inflections"
+
 #
 # This module implements a pretty generic AssociationLoader.
 #
