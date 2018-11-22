@@ -7,20 +7,20 @@ module Simple
     # - records - a single hash of attributes or an array of hashes of attributes
     # - on_conflict - uses a postgres ON CONFLICT clause to ignore insert conflicts if true
     #
-    def insert(table, records, on_conflict: nil)
+    def insert(table, records, on_conflict: nil, into: nil)
       if records.is_a?(Hash)
-        insert_many(table, [records], on_conflict).first
+        insert_many(table, [records], on_conflict, into).first
       else
-        insert_many(table, records, on_conflict)
+        insert_many(table, records, on_conflict, into)
       end
     end
 
     private
 
-    def insert_many(table, records, on_conflict)
+    def insert_many(table, records, on_conflict, into)
       return [] if records.empty?
 
-      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys, on_conflict: on_conflict)
+      inserter = Inserter.create(table_name: table.to_s, columns: records.first.keys, on_conflict: on_conflict, into: into)
       inserter.insert(records: records)
     end
 
@@ -29,16 +29,19 @@ module Simple
 
       @@inserters = {}
 
-      def self.create(table_name:, columns:, on_conflict:)
-        @@inserters[[table_name, columns, on_conflict]] ||= new(table_name: table_name, columns: columns, on_conflict: on_conflict)
+      def self.create(table_name:, columns:, on_conflict:, into:)
+        expect! on_conflict => CONFICT_HANDLING.keys
+
+        @@inserters[[table_name, columns, on_conflict, into]] ||= new(table_name: table_name, columns: columns, on_conflict: on_conflict, into: into)
       end
 
       #
       # - table_name - the name of the table
       # - columns - name of columns, as Array[String] or Array[Symbol]
       #
-      def initialize(table_name:, columns:, on_conflict:)
+      def initialize(table_name:, columns:, on_conflict:, into:)
         @columns = columns
+        @into = into
 
         cols = []
         vals = []
@@ -51,7 +54,9 @@ module Simple
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING id"
+        returning = into ? '*' : "id"
+
+        @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING #{returning}"
       end
 
       CONFICT_HANDLING = {
@@ -69,7 +74,7 @@ module Simple
       def insert(records:)
         SQL.transaction do
           records.map do |record|
-            SQL.ask @sql, *record.values_at(*@columns)
+            SQL.ask @sql, *record.values_at(*@columns), into: @into
           end
         end
       end

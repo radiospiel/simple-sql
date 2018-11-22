@@ -3,6 +3,8 @@
 # rubocop:disable Metrics/ParameterLists
 # rubocop:disable Style/GuardClause
 
+require "active_support/core_ext/string/inflections"
+
 #
 # This module implements a pretty generic AssociationLoader.
 #
@@ -52,7 +54,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
 
     sql = <<~SQL
       WITH foreign_keys AS(
-        SELECT
+        SELECT DISTINCT
           tc.table_schema || '.' || tc.table_name   AS belonging_table,
           kcu.column_name                           AS belonging_column,
           ccu.table_schema || '.' || ccu.table_name AS having_table,

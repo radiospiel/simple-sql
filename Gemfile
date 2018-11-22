@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'byebug'
+gem 'pry-byebug'
+
 # Specify your gem's dependencies in {gemname}.gemspec
 gemspec

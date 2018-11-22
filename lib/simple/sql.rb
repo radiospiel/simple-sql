@@ -26,6 +26,18 @@ module Simple
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
 
+    LOCK = 4711
+
+    def locked
+      binding.pry
+      begin
+        ask("SELECT pg_advisory_lock(#{LOCK})")
+        yield
+      ensure
+        ask("SELECT pg_advisory_unlock(#{LOCK})")
+      end
+    end
+
     private
 
     def connection
