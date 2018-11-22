@@ -14,6 +14,7 @@ module Simple::SQL::Connection
     Logging.info "Connecting to #{database_url}"
 
     raw_connection = PG::Connection.new(config)
+    raw_connection.set_notice_processor { |message| Logging.info(message) }
     PgConnection.new(raw_connection)
   end
 

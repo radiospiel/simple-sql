@@ -21,7 +21,8 @@ end
 SQL = Simple::SQL
 USER_COUNT = 2
 
-ActiveRecord::Base.logger.level = Logger::INFO
+ActiveRecord::Base.logger.level = Logger::DEBUG
+Simple::SQL.logger.level = Logger::DEBUG
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
