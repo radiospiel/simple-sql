@@ -60,7 +60,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
 
   # returns an array of [schema, host_table]
 
-  def lookup_pg_class(oid)
+  def lookup_pg_class(_oid)
     ::Simple::SQL.ask <<~SQL, @pg_source_oid
       SELECT nspname AS schema, relname AS host_table
       FROM pg_class
@@ -76,7 +76,9 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
     records = @hash_records
     if @target_type != Hash
       schema, host_table = lookup_pg_class @pg_source_oid
-      records = RowConverter.convert_row(records, associations: @associations, into: @target_type, fq_table_name: "#{schema}.#{host_table}")
+      records = RowConverter.convert_row(records, associations: @associations,
+                                                  into: @target_type,
+                                                  fq_table_name: "#{schema}.#{host_table}")
     end
     replace(records)
   end

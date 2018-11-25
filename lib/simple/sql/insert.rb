@@ -56,7 +56,7 @@ module Simple
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        returning = into ? '*' : "id"
+        returning = into ? "*" : "id"
 
         @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING #{returning}"
       end

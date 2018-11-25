@@ -1,5 +1,3 @@
-# rubocop:disable Style/IfUnlessModifier
-
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
 #
