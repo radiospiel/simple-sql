@@ -1,0 +1,11 @@
+#!/bin/bash
+printf "=== $1\n"
+(
+  if [ -f $1.rb ]; then
+    cloc $(find $1/ -name *rb) $1.rb 
+  else
+    cloc $(find $1/ -name *rb) 
+  fi
+) |
+grep -E 'Language|Ruby' | sed 's-Language-        -'
+printf "\n"
