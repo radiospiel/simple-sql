@@ -40,6 +40,8 @@ module Simple
       # - columns - name of columns, as Array[String] or Array[Symbol]
       #
       def initialize(table_name:, columns:, on_conflict:, into:)
+        raise ArgumentError, "Cannot insert a record without attributes" if columns.empty?
+
         @columns = columns
         @into = into
 
