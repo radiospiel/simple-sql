@@ -45,12 +45,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
     expect! as => [nil, Symbol]
 
     # resolve oid into table and schema name.
-    schema, host_table = ::Simple::SQL.ask <<~SQL, @pg_source_oid
-      SELECT nspname AS schema, relname AS host_table
-      FROM pg_class
-      JOIN pg_namespace ON pg_namespace.oid=pg_class.relnamespace
-      WHERE pg_class.oid=$1
-    SQL
+    schema, host_table = lookup_pg_class @pg_source_oid
 
     AssociationLoader.preload @hash_records, association,
                               host_table: host_table, schema: schema, as: as,
@@ -63,12 +58,26 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
 
   private
 
+  # returns an array of [schema, host_table]
+
+  def lookup_pg_class(oid)
+    ::Simple::SQL.ask <<~SQL, @pg_source_oid
+      SELECT nspname AS schema, relname AS host_table
+      FROM pg_class
+      JOIN pg_namespace ON pg_namespace.oid=pg_class.relnamespace
+      WHERE pg_class.oid=$1
+    SQL
+  end
+
   # convert the records into the target type.
   RowConverter = ::Simple::SQL::Helpers::RowConverter
 
   def materialize
     records = @hash_records
-    records = RowConverter.convert_row(records, associations: @associations, into: @target_type) if @target_type != Hash
+    if @target_type != Hash
+      schema, host_table = lookup_pg_class @pg_source_oid
+      records = RowConverter.convert_row(records, associations: @associations, into: @target_type, fq_table_name: "#{schema}.#{host_table}")
+    end
     replace(records)
   end
 end
