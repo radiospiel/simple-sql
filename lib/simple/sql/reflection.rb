@@ -46,6 +46,13 @@ module Simple
       end
 
       def column_info(table_name)
+        @column_info ||= {}
+        @column_info[table_name] ||= _column_info(table_name)
+      end
+
+      private
+
+      def _column_info(table_name)
         schema, table_name = parse_table_name(table_name)
         recs = all <<~SQL, schema, table_name, into: Hash
           SELECT
@@ -57,8 +64,6 @@ module Simple
 
         records_by_attr(recs, :column_name)
       end
-
-      private
 
       def parse_table_name(table_name)
         p1, p2 = table_name.split(".", 2)
@@ -74,6 +79,24 @@ module Simple
           record.reject! { |_k, v| v.nil? }
           hsh.update record[attr] => OpenStruct.new(record)
         end
+      end
+
+      public
+
+      def lookup_pg_class(oid)
+        @pg_classes ||= {}
+        @pg_classes[oid] ||= _lookup_pg_class(oid)
+      end
+
+      private
+
+      def _lookup_pg_class(oid)
+        ::Simple::SQL.ask <<~SQL, oid
+          SELECT nspname AS schema, relname AS host_table
+          FROM pg_class
+          JOIN pg_namespace ON pg_namespace.oid=pg_class.relnamespace
+          WHERE pg_class.oid=$1
+        SQL
       end
     end
   end
