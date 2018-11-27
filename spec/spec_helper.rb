@@ -30,6 +30,10 @@ RSpec.configure do |config|
   config.order = "random"
   config.example_status_persistence_file_path = ".rspec.data"
 
+  config.backtrace_exclusion_patterns << /spec\/support/
+  config.backtrace_exclusion_patterns << /spec_helper/
+  config.backtrace_exclusion_patterns << /database_cleaner/
+
   config.around(:each) do |example|
     Simple::SQL.ask "TRUNCATE TABLE users, unique_users, organizations RESTART IDENTITY CASCADE"
     example.run
