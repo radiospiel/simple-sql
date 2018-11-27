@@ -1,15 +1,21 @@
+require_relative "./immutable"
+
 module Simple::SQL::Helpers::RowConverter
   SELF = self
 
   # returns an array of converted records
-  def self.convert_row(records, into:, associations: nil)
+  def self.convert_row(records, into:, associations: nil, fq_table_name: nil)
     hsh = records.first
     return records unless hsh
 
     converter = if into == :struct
                   StructConverter.for(attributes: hsh.keys, associations: associations)
+                elsif into == :immutable
+                  ImmutableConverter.new(type: into, associations: associations)
+                elsif into.respond_to?(:new_from_row)
+                  TypeConverter2.new(type: into, associations: associations, fq_table_name: fq_table_name)
                 else
-                  TypeConverter.for(type: into, associations: associations)
+                  TypeConverter.new(type: into, associations: associations)
                 end
 
     records.map { |record| converter.convert_row(record) }
@@ -21,10 +27,6 @@ module Simple::SQL::Helpers::RowConverter
   end
 
   class TypeConverter #:nodoc:
-    def self.for(type:, associations:)
-      new(type: type, associations: associations)
-    end
-
     def initialize(type:, associations:)
       @type         = type
       @associations = associations
@@ -32,6 +34,10 @@ module Simple::SQL::Helpers::RowConverter
 
     def convert_row(hsh)
       hsh = convert_associations(hsh) if @associations
+      build_row_in_target_type hsh
+    end
+
+    def build_row_in_target_type(hsh)
       @type.new hsh
     end
 
@@ -47,6 +53,26 @@ module Simple::SQL::Helpers::RowConverter
       end
 
       hsh.merge(updates)
+    end
+  end
+
+  class ImmutableConverter < TypeConverter #:nodoc:
+    Immutable = ::Simple::SQL::Helpers::Immutable
+
+    def build_row_in_target_type(hsh)
+      Immutable.create hsh
+    end
+  end
+
+  class TypeConverter2 < TypeConverter #:nodoc:
+    def initialize(type:, associations:, fq_table_name:)
+      super(type: type, associations: associations)
+      @fq_table_name = fq_table_name
+    end
+
+    def convert_row(hsh)
+      hsh = convert_associations(hsh) if @associations
+      @type.new_from_row hsh, fq_table_name: @fq_table_name
     end
   end
 

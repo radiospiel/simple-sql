@@ -40,6 +40,8 @@ module Simple
       # - columns - name of columns, as Array[String] or Array[Symbol]
       #
       def initialize(table_name:, columns:, on_conflict:, into:)
+        raise ArgumentError, "Cannot insert a record without attributes" if columns.empty?
+
         @columns = columns
         @into = into
 
@@ -54,7 +56,7 @@ module Simple
         cols += timestamp_columns
         vals += timestamp_columns.map { "now()" }
 
-        returning = into ? '*' : "id"
+        returning = into ? "*" : "id"
 
         @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING #{returning}"
       end

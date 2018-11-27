@@ -1,4 +1,3 @@
-# rubocop:disable Style/IfUnlessModifier
 # rubocop:disable Style/GuardClause
 
 class Simple::SQL::Scope

@@ -1,5 +1,3 @@
-# rubocop:disable Style/IfUnlessModifier
-
 # private
 module Simple::SQL::SimpleTransactions
   def tx_nesting_level

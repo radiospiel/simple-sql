@@ -21,7 +21,8 @@ end
 SQL = Simple::SQL
 USER_COUNT = 2
 
-ActiveRecord::Base.logger.level = Logger::INFO
+ActiveRecord::Base.logger.level = Logger::DEBUG
+Simple::SQL.logger.level = Logger::DEBUG
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
@@ -29,6 +30,10 @@ RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = :expect }
   config.order = "random"
   config.example_status_persistence_file_path = ".rspec.data"
+
+  config.backtrace_exclusion_patterns << /spec\/support/
+  config.backtrace_exclusion_patterns << /spec_helper/
+  config.backtrace_exclusion_patterns << /database_cleaner/
 
   config.around(:each) do |example|
     Simple::SQL.ask "TRUNCATE TABLE users, unique_users, organizations RESTART IDENTITY CASCADE"

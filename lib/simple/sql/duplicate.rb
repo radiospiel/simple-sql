@@ -2,7 +2,11 @@
 
 module Simple
   module SQL
-    class Fragment < Struct.new(:to_sql)
+    unless defined?(Fragment)
+
+      class Fragment < Struct.new(:to_sql)
+      end
+
     end
 
     def fragment(str)

@@ -1,17 +1,36 @@
 #!/usr/bin/env ruby
 $: << "lib"
 require "simple/sql"
+require "simple/store"
 
 SQL = Simple::SQL
 SQL.connect!
 
-def reload!
-  $VERBOSE = nil
-  Dir.glob("lib/simple/sql/**/*.rb").sort.each do |path|
-    STDERR.puts path
+module Reload
+  extend self
+
+  def load_file(path)
+    STDERR.puts "Loading #{path}\n"
     load path
-  end 
+  end
+
+  def load_dir(dir)
+    Dir.glob("#{dir}/**/*.rb").sort.each_with_index do |path, idx|
+      load_file path
+    end 
+  end
 end
 
+$VERBOSE = nil
+
+def reload!
+  Reload.load_dir "lib/simple"
+  Reload.load_file "config/console-init.rb"
+end
+
+Reload.load_file "config/console-init.rb"
+
 require "irb"
+require "irb/completion"
+
 IRB.start
