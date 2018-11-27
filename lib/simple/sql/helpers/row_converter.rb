@@ -1,3 +1,5 @@
+require_relative "./immutable"
+
 module Simple::SQL::Helpers::RowConverter
   SELF = self
 
@@ -8,6 +10,8 @@ module Simple::SQL::Helpers::RowConverter
 
     converter = if into == :struct
                   StructConverter.for(attributes: hsh.keys, associations: associations)
+                elsif into == :immutable
+                  ImmutableConverter.new(type: into, associations: associations)
                 elsif into.respond_to?(:new_from_row)
                   TypeConverter2.new(type: into, associations: associations, fq_table_name: fq_table_name)
                 else
@@ -30,6 +34,10 @@ module Simple::SQL::Helpers::RowConverter
 
     def convert_row(hsh)
       hsh = convert_associations(hsh) if @associations
+      build_row_in_target_type hsh
+    end
+
+    def build_row_in_target_type(hsh)
       @type.new hsh
     end
 
@@ -45,6 +53,14 @@ module Simple::SQL::Helpers::RowConverter
       end
 
       hsh.merge(updates)
+    end
+  end
+
+  class ImmutableConverter < TypeConverter #:nodoc:
+    Immutable = ::Simple::SQL::Helpers::Immutable
+
+    def build_row_in_target_type(hsh)
+      Immutable.create hsh
     end
   end
 
