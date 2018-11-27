@@ -4,11 +4,15 @@ AllCops:
     - 'spec/**/*'
     - 'test/**/*'
     - 'bin/**/*'
+    - 'lib/simple/store.old/**/*'
+    - 'spec.old/**/*'
     - 'tasks/release.rake'
     - '*.gemspec'
     - 'Gemfile'
     - 'Rakefile'
-
+    - 'scripts/*'
+    - 'config/*'
+    
 Metrics/LineLength:
   Max: 120
 

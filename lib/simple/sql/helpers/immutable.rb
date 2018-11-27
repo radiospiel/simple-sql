@@ -65,6 +65,8 @@ end
 
 if $PROGRAM_NAME == __FILE__
 
+  # rubocop:disable Metrics/AbcSize
+
   require "test-unit"
 
   class Simple::SQL::Helpers::Immutable::TestCase < Test::Unit::TestCase
