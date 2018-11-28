@@ -11,7 +11,7 @@ module Simple::Store::Storage
       record["metadata"] = metadata
     end
 
-    # Reove type attribute if this table doesn't have a type column
+    # Remove type attribute if this table doesn't have a type column
     # (but is statically typed instead.)
     record.delete "type" unless metamodel.column?("type")
     record
