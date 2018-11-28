@@ -1,58 +1,50 @@
-# rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/CyclomaticComplexity
-# rubocop:disable Metrics/MethodLength
-# rubocop:disable Metrics/BlockLength
-
 module Simple::Store::Storage
   extend self
 
   Model = Simple::Store::Model
 
   def convert_one_to_storage_representation(metamodel, model)
-    convert_to_storage_representation(metamodel, [model]).first
+    # Extract and merge static and dynamic attributes
+    record   = extract_static_attributes(metamodel, model)
+    metadata = extract_dynamic_attributes(metamodel, model)
+    unless metadata.empty?
+      record["metadata"] = metadata
+    end
+
+    # Reove type attribute if this table doesn't have a type column
+    # (but is statically typed instead.)
+    record.delete "type" unless metamodel.column?("type")
+    record
   end
 
   def convert_to_storage_representation(metamodel, models)
-    attributes = metamodel.attributes
-    dynamic_attributes = metamodel.attributes(kind: :dynamic)
-
     models.map do |model|
-      record = model.to_hash.dup
-
-      metadata = {}
-
-      # move all attributes from record into metadata.
-      record.reject! do |k, v|
-        attribute = attributes[k]
-
-        case attribute && attribute[:kind]
-        when :static
-          false
-        when :dynamic
-          metadata[k] = v
-          true
-        when nil
-          # this is not a defined attribute (but maybe something internal, like "id" or "type")
-          true
-        else
-          expect! attribute => { kind: [:static, :dynamic, :virtual] }
-          true
-        end
-      end
-
-      unless metadata.empty?
-        unless dynamic_attributes.empty?
-          raise "metadata on table without metadata column #{metadata.keys}"
-        end
-        record["metadata"] = metadata
-      end
-      record.delete "type" unless metamodel.column?("type")
-      record.delete "id"
-      record
+      convert_one_to_storage_representation metamodel, model
     end
   end
 
-  #
+  private
+
+  def extract_static_attributes(metamodel, model)
+    # copy all attributes from the model's internal Hash representation into
+    # either the dynamic_attributes or the record Hash.
+    metamodel.attributes(kind: :static).each_with_object({}) do |(k, _attribute), hsh|
+      next if k == "id"
+      next unless model.to_hash.key?(k)
+
+      hsh[k] = model.to_hash[k]
+    end
+  end
+
+  def extract_dynamic_attributes(metamodel, model)
+    metamodel.attributes(kind: :dynamic).each_with_object({}) do |(k, _attribute), hsh|
+      next unless model.to_hash.key?(k)
+      hsh[k] = model.to_hash[k]
+    end
+  end
+
+  public
+
   Immutable = ::Simple::SQL::Helpers::Immutable
 
   def new_from_row(hsh, fq_table_name:)
