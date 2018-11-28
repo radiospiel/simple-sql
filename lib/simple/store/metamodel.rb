@@ -83,6 +83,10 @@ class Simple::Store::Metamodel
     @virtual_attributes
   end
 
+  def resolve_virtual_attribute(model, name)
+    @virtual_attributes.send(name, model)
+  end
+
   # A hash mapping attribute names to attribute specifications.
   # attr_reader :attributes # Hash name -> {}
 
@@ -104,6 +108,14 @@ class Simple::Store::Metamodel
         end
       end
     end
+  end
+
+  def attribute?(name)
+    attributes.key?(name)
+  end
+
+  def writable_attribute?(name)
+    attributes(writable: true).key?(name)
   end
 
   def build(hsh)

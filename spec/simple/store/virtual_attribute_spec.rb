@@ -32,23 +32,43 @@ describe "virtual_attributes" do
     end
   end
 
-  describe "reading virtual attributes" do
-    let!(:user) { Simple::Store.create! "User", first_name: "foo", last_name: "bar" }
+  describe "virtual attributes" do
+    before do
+      Simple::Store.create! "User", first_name: "foo", last_name: "bar"
+    end
 
-    it "calculates the virtual attribute when requested" do
+    let!(:user) { Simple::Store.ask "SELECT * FROM simple_store.users LIMIT 1" }
+
+    it "calculates value when requested" do
       expect(user.full_name).to eq("foo bar")
     end
 
-    it "includes the virtual attribute" do
+    it "includes the virtual attribute in the full_hash result", pending: "needs full_hash" do
       hsh = user.to_hash
 
       expect(hsh["full_name"]).to eq("foo bar")
     end
 
-    it "does not include the virtual attribute in the initial record", pending: "[TODO] Implement lazy virtual attributes" do
-      hsh = user.instance_variable_get :@to_hash
+    it "does not memoize the virtual attribute in the initial record" do
+      expect(user.full_name).to eq("foo bar")
+      user.first_name = "baz"
+      expect(user.full_name).to eq("baz bar")
+    end
+    
+    context "with an incomplete object" do
+      let!(:user) { Simple::Store.ask "SELECT id, first_name FROM simple_store.users LIMIT 1" }
 
-      expect(hsh["full_name"]).to be_nil
+      it "does not implement the getter" do
+        expect {
+          user.full_name
+        }.to raise_error(NameError)
+      end
+
+      it "does not include the virtual attribute in the to_hash result" do
+        hsh = user.to_hash
+
+        expect(hsh["full_name"]).to be_nil
+      end
     end
   end
 end

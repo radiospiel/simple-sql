@@ -4,6 +4,8 @@
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/keys"
 
+# This class implements a Hash-like object, which will resolves attributes via
+# method_missing, using the implementations as specified in the object's metamodel.
 class Simple::Store::Model
   def new_record?
     id.nil?
@@ -33,13 +35,12 @@ class Simple::Store::Model
   #   end
   # end
 
-  private
-
   # Build a model of a given \a metamodel.
   #
   # The constructor assumes that all attributes in +trusted_data+ are valid and
   # of the right type. No validation happens here. This is the case when reading
-  # fro the storage.
+  # from the storage.
+
   def initialize(metamodel, trusted_data: {})
     expect! trusted_data => { "type" => [nil, metamodel.name] }
 
@@ -47,13 +48,9 @@ class Simple::Store::Model
     @to_hash          = trusted_data.stringify_keys
     @to_hash["type"]  = metamodel.name
     @to_hash["id"] ||= nil
-
-    metamodel.attributes(kind: :virtual).each_key do |name|
-      @to_hash[name] = metamodel.virtual_implementations.send(name, self)
-    end
-
-    # puts base.public_methods(fal)
   end
+
+  private
 
   def set_id_by_trusted_caller(id) # rubocop:disable Naming/AccessorMethodName
     expect! id => Integer
@@ -109,10 +106,9 @@ class Simple::Store::Model
 
   public
 
-  # compare this record with another record.
+  # compare this model with another model or Hash.
   #
-  # This compares against a Hash representation of \a other. Consequently you
-  # can compare a Record against another Record, but also against a Hash.
+  # This ignores Symbol/String differences.
   def ==(other)
     return false unless other.respond_to?(:to_hash)
 
@@ -122,7 +118,7 @@ class Simple::Store::Model
   def inspect
     hsh = to_hash.reject { |k, _v| %w(id type metadata).include?(k) }
 
-    hsh.reject! do |k, v|
+    hsh = hsh.reject do |k, v|
       v.nil? && metamodel.attributes[k] && metamodel.attributes[k][:kind] == :dynamic
     end
 
@@ -139,39 +135,34 @@ class Simple::Store::Model
   GETTER_OR_SETTER = /\A([a-z_][a-z0-9_]*)(=?)\z/
 
   def respond_to_missing?(sym, _include_private = false)
-    (sym =~ GETTER_OR_SETTER) && attribute?($1)
+    (sym =~ GETTER_OR_SETTER) && metamodel.attribute?($1)
   end
 
+  # rubocop:disable Metrics/PerceivedComplexity
+  # rubocop:disable Metrics/BlockNesting
+  # rubocop:disable Style/GuardClause
+
+  # ^^^ Please keep the code for method_missing as convoluted as it is.
+  #     It needs a certain level of mental agility to read and adjust.
   def method_missing(sym, *args)
     case args.length
     when 0
-      if GETTER_REGEXP =~ sym && attribute?($1)
-        return get_attribute($1)
+      if GETTER_REGEXP =~ sym
+        attr = metamodel.attributes[$1]
+        if attr
+          if attr[:kind] == :virtual
+            return metamodel.resolve_virtual_attribute(self, $1)
+          else
+            return @to_hash[$1]
+          end
+        end
       end
     when 1
-      if SETTER_REGEXP =~ sym && writable_attribute?($1)
-        return set_attribute($1, args[0])
+      if SETTER_REGEXP =~ sym && metamodel.writable_attribute?($1)
+        return @to_hash[$1] = args[0]
       end
     end
 
     super
-  end
-
-  def attribute?(name)
-    metamodel.attributes.key?(name)
-  end
-
-  def writable_attribute?(name)
-    metamodel.attributes(writable: true).key?(name)
-  end
-
-  def get_attribute(name)
-    @to_hash[name]
-  end
-
-  def set_attribute(name, value)
-    # @original_hash ||= @to_hash.deep_dup
-
-    @to_hash[name] = value
   end
 end
