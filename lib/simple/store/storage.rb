@@ -45,14 +45,15 @@ module Simple::Store::Storage
 
   public
 
-  Immutable = ::Simple::SQL::Helpers::Immutable
+  Immutable   = ::Simple::SQL::Helpers::Immutable
+  Reflection  = ::Simple::SQL::Reflection
 
-  def new_from_row(hsh, fq_table_name:)
-    metamodel = determine_metamodel type: hsh[:type], fq_table_name: fq_table_name
+  def from_complete_row(hsh, fq_table_name:)
+    # Note that we have to look up the metamodel for each row, since they can differ between
+    # rows.
+    metamodel = determine_metamodel(type: hsh[:type], fq_table_name: fq_table_name)
     if metamodel
       Model.new(metamodel, trusted_data: hsh)
-    elsif hsh.count == 1
-      hsh.values.first
     else
       Immutable.create(hsh)
     end

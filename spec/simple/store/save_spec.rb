@@ -69,4 +69,23 @@ describe "Simple::Store.save!" do
       expect(names).to contain_exactly("orgname1", "orgname2", "orgname3", "changed")
     end
   end
+
+  context "with an incomplete model" do
+    let!(:model)    do
+      Simple::Store.create! "Organization", name: "orgname"
+      Simple::Store.ask "SELECT id, name FROM simple_store.organizations"
+    end
+
+    it "cannot change any attributes" do
+      expect {
+        model.name = "changed_name"
+      }.to raise_error(NoMethodError)
+    end
+
+    it "does not accept any mass assignment" do
+      expect {
+        model.assign(name: "changed_name")
+      }.to raise_error(NoMethodError)
+    end
+  end
 end
