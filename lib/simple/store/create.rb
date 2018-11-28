@@ -5,7 +5,7 @@ module Simple::Store::Create
 
   extend self
 
-  def create_model(model)
+  def create_model_during_save(model)
     created_model = create!(model.metamodel, [model.to_hash], on_conflict: nil).first
     model.send(:set_id_by_trusted_caller, created_model.id)
     created_model

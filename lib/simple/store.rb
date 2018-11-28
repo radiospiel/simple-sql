@@ -153,7 +153,7 @@ module Simple::Store
 
     models.map do |model|
       if model.new_record?
-        Create.create_model(model)
+        Create.create_model_during_save(model)
       else
         Update.update_model(model)
       end
