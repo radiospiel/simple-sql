@@ -81,6 +81,21 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
+  # Executes a block, usually of db insert code, while holding an
+  # advisory lock.
+  #
+  # Examples:
+  #
+  # - <tt>Simple::SQL.locked(4711) { puts 'do work while locked' }
+  def locked(lock_id)
+    begin
+      ask("SELECT pg_advisory_lock(#{lock_id})")
+      yield
+    ensure
+      ask("SELECT pg_advisory_unlock(#{lock_id})")
+    end
+  end
+
   private
 
   Encoder = ::Simple::SQL::Helpers::Encoder
