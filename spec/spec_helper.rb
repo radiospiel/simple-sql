@@ -12,6 +12,7 @@ require "awesome_print"
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/sql"
+require "pry-byebug"
 
 unless ENV["USE_ACTIVE_RECORD"]
   Simple::SQL.connect!
