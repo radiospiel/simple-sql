@@ -6,6 +6,23 @@ describe "Simple::Store::Model" do
   let(:user_klass) { Simple::Store::Metamodel.resolve "Organization" }
   let(:user)       { user_klass.build({}) }
 
+  describe "to_json" do
+    it "returns a json string" do
+      expect(user.to_json).to eq("{\"type\":\"Organization\",\"id\":null}")
+    end
+
+    it "returns a json string when created" do
+      user = Simple::Store.create! "Organization", { name: "foo"}
+      expect(user.to_json).to eq("{\"id\":1,\"name\":\"foo\",\"city\":null,\"type\":\"Organization\"}")
+    end
+
+    it "returns a json string when loaded" do
+      user = Simple::Store.create! "Organization", { name: "foo"}
+      loaded = Simple::Store.ask "SELECT * FROM simple_store.organizations LIMIT 1"
+      expect(loaded.to_json).to eq("{\"id\":1,\"name\":\"foo\",\"city\":null,\"type\":\"Organization\"}")
+    end
+  end
+
   describe "method_missing getters" do
     it "implements getters for readable attributes" do
       expect(user.respond_to?(:name)).to eq(true)

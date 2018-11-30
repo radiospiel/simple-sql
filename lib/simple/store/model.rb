@@ -14,6 +14,10 @@ class Simple::Store::Model
   attr_reader :metamodel
   attr_reader :to_hash
 
+  def to_json(*args)
+    to_hash.to_json(*args)
+  end
+
   # Returns a hash of changed attributes indicating their original and new values
   # like attr => [original value, new value].
   #
