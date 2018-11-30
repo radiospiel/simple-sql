@@ -17,7 +17,7 @@ Simple::SQL.exec <<~SQL
     role_id INTEGER,
     first_name VARCHAR,
     last_name VARCHAR,
-    metadata JSONB,
+    meta_data JSONB,
     access_level access_level,
     type VARCHAR NOT NULL,
     created_at timestamp,

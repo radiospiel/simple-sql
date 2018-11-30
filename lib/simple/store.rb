@@ -29,7 +29,7 @@ require_relative "store/update"
 # and associations are registered with a name and a type.
 #
 # All attributes that do not exist as columns in the table are called "dynamic"
-# attributes and read from a metadata JSONB attribute. Type conversions are done to
+# attributes and read from a meta_data JSONB attribute. Type conversions are done to
 # convert from and to types that are not supported by JSON (mostly dates and boolean.)
 #
 module Simple::Store

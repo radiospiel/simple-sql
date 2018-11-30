@@ -42,7 +42,7 @@ The following code registers a type.
 A type registration defines attributes. Depending on the readability and writability settings of an attribute this code defines getter and setter methods. If an attribute is read or write protected these methods check that the current user can call the method.
 
 - static attributes are stored inside a table column.
-- dynamic attributes are stored inside the "metadata" JSONB column.
+- dynamic attributes are stored inside the "meta_data" JSONB column.
 - virtual attributes are never stored; also, they are never writable.
 - all attributes are readable by default; all non-virtual attributes are writable by default
 

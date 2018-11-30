@@ -6,9 +6,9 @@ module Simple::Store::Storage
   def convert_one_to_storage_representation(metamodel, model)
     # Extract and merge static and dynamic attributes
     record   = extract_static_attributes(metamodel, model)
-    metadata = extract_dynamic_attributes(metamodel, model)
-    unless metadata.empty?
-      record["metadata"] = metadata
+    meta_data = extract_dynamic_attributes(metamodel, model)
+    unless meta_data.empty?
+      record["meta_data"] = meta_data
     end
 
     # Remove type attribute if this table doesn't have a type column
@@ -49,12 +49,18 @@ module Simple::Store::Storage
   Reflection  = ::Simple::SQL::Reflection
 
   def from_complete_row(hsh, fq_table_name:)
+    meta_data = hsh.delete :meta_data
+    if meta_data
+      hsh = meta_data.merge(hsh)
+    end
+
     # Note that we have to look up the metamodel for each row, since they can differ between
     # rows.
     metamodel = determine_metamodel(type: hsh[:type], fq_table_name: fq_table_name)
     if metamodel
-      Model.new(metamodel, trusted_data: hsh)
+      model = Model.new(metamodel, trusted_data: hsh)
     else
+      STDERR.puts "Cannot find metamodel declaration for type #{hsh[:type].inspect} in table #{fq_table_name.inspect}"
       Immutable.create(hsh)
     end
   end

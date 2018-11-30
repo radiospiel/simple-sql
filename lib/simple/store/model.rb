@@ -64,7 +64,7 @@ class Simple::Store::Model
   # This method ignores attributes that are not defined for models of this
   # type.
   #
-  # Attributes are converted as necessary. See #convert_types.
+  # [TODO]: Attributes are converted as necessary.
   def assign(attrs)
     expect! attrs => Hash
 
@@ -82,29 +82,9 @@ class Simple::Store::Model
       write_protected_attributes.key?(key)
     end
 
-    # -- convert types fro String values into target type
-
-    attrs = convert_types(attrs)
-
     @to_hash.merge!(attrs)
     self
   end
-
-  private
-
-  # stringify keys in attrs, and convert as necessary.
-  #
-  # Conversion only happens if an input value is a String, and the attribute
-  # is not of type :text.
-  #
-  # Also removes all unknown attributes, and internal attributes.
-  #
-  # Returns a new or a potentially changed Hash
-  def convert_types(attrs)
-    attrs
-  end
-
-  public
 
   # compare this model with another model or Hash.
   #
@@ -116,7 +96,7 @@ class Simple::Store::Model
   end
 
   def inspect
-    hsh = to_hash.reject { |k, _v| %w(id type metadata).include?(k) }
+    hsh = to_hash.reject { |k, _v| %w(id type meta_data).include?(k) }
 
     hsh = hsh.reject do |k, v|
       v.nil? && metamodel.attributes[k] && metamodel.attributes[k][:kind] == :dynamic

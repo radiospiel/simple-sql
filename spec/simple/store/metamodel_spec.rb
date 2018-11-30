@@ -18,7 +18,7 @@ describe "Simple::Store::Metamodel" do
         role_id INTEGER,
         first_name VARCHAR,
         last_name VARCHAR,
-        metadata JSONB,
+        meta_data JSONB,
         access_level access_level,
         created_at timestamp,
         updated_at timestamp
@@ -49,8 +49,8 @@ describe "Simple::Store::Metamodel" do
   describe "Types with dynamic attributes" do
     let!(:metamodel) { Simple::Store::Metamodel.new(table_name: "simple_store.dynamic_types") }
 
-    it "excludes the metadata column" do
-      expect(metamodel.attributes.key?("metadata")).to eq(false)
+    it "excludes the meta_data column" do
+      expect(metamodel.attributes.key?("meta_data")).to eq(false)
     end
 
     it "automatically determines the name" do

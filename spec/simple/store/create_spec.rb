@@ -12,8 +12,8 @@ describe "Simple::Store.create!" do
       expect(record.metamodel.name).to eq(type_name)
     end
 
-    it "does not defines a metadata gette" do
-      expect(record.respond_to?(:metadata)).to eq(false)
+    it "does not defines a meta_data gette" do
+      expect(record.respond_to?(:meta_data)).to eq(false)
     end
 
     it "sets timestamps" do
@@ -88,7 +88,7 @@ describe "Simple::Store.create!" do
         role_id: nil,
         first_name: "first",
         last_name: nil, 
-        metadata: nil,
+        meta_data: nil,
         access_level: nil,
         type: "User"
       }
