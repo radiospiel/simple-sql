@@ -41,7 +41,7 @@ describe "Simple::Store::Metamodel" do
     it "returns the correct set of attributes" do
       expect(metamodel.attributes).to eq(
         "id"    => { type: :integer, writable: false, readable: true, kind: :static },
-        "name"  => { type: :text, writable: true, readable: true, kind: :static }
+        "name"  => { type: :string, writable: true, readable: true, kind: :static }
       )
     end
   end
@@ -64,12 +64,12 @@ describe "Simple::Store::Metamodel" do
     it "returns the correct set of attributes" do
       expected_attributes = {
         "id"              => { type: :integer, writable: false, readable: true, kind: :static },
-        "type"            => { type: :text, writable: false, readable: true, kind: :static },
+        "type"            => { type: :string, writable: false, readable: true, kind: :static },
         "access_level"    => { type: :string, writable: true, readable: true, kind: :static },
         "organization_id" => { type: :integer, writable: true, readable: true, kind: :static },
         "role_id"         => { type: :integer, writable: true, readable: true, kind: :static },
-        "first_name"      => { type: :text, writable: true, readable: true, kind: :static },
-        "last_name"       => { type: :text, writable: true, readable: true, kind: :static },
+        "first_name"      => { type: :string, writable: true, readable: true, kind: :static },
+        "last_name"       => { type: :string, writable: true, readable: true, kind: :static },
         "created_at"      => { type: :timestamp, writable: false, readable: true, kind: :static },
         "updated_at"      => { type: :timestamp, writable: false, readable: true, kind: :static }
       }

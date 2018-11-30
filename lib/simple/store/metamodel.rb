@@ -50,13 +50,32 @@ class Simple::Store::Metamodel
   OPTIONS_DEFAULTS = {
     readable: true,
     writable: true,
-    kind: :dynamic,
-    type: :text
+    kind: :dynamic
   }
 
   # register an attribute
-  def attribute(name, options)
+  def attribute(name, type = nil, options = nil)
+    # -- apply type and options defaults --------------------------------------
+
+    if type.nil? && options.nil?
+      type, options = :string, {}
+    elsif options.nil?
+      if type.is_a?(Hash)
+        type, options = :string, type
+      else
+        type, options = type, {}
+      end
+    end
+
+    expect! name => [Symbol, String]
+    expect! type => [Symbol, String]
+
+    # -- define an attribute --------------------------------------------------
+
     name = name.to_s
+
+    options = options.dup
+    options[:type] = type
 
     current_options = @attributes[name] || OPTIONS_DEFAULTS
     options = current_options.merge(options)
@@ -161,7 +180,7 @@ class Simple::Store::Metamodel
   private
 
   TYPE_BY_PG_DATA_TYPE = {
-    "character varying" => :text,
+    "character varying"            => :string,
     "timestamp without time zone"  => :timestamp,
     "USER-DEFINED"                 => :string # enums
   }
@@ -170,15 +189,18 @@ class Simple::Store::Metamodel
 
   def read_attributes_from_table
     column_info.each do |name, ostruct|
-      next if name == "metadata"
+      next if name == "meta_data"
 
       data_type = ostruct.data_type
+      type = (TYPE_BY_PG_DATA_TYPE[data_type] || data_type.to_sym)
 
-      attribute name,
-                type:     (TYPE_BY_PG_DATA_TYPE[data_type] || data_type.to_sym),
-                writable: !READONLY_ATTRIBUTES.include?(name),
-                readable: true,
-                kind:     :static
+      options = {
+        writable: !READONLY_ATTRIBUTES.include?(name),
+        readable: true,
+        kind:     :static
+      }
+
+      attribute name, type, options
     end
   end
 end

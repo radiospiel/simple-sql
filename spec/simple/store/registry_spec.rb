@@ -34,7 +34,7 @@ describe "Simple::Store::Metamodel.register" do
 
     it "replaces existing attribute options" do
       metamodel = Simple::Store::Metamodel.resolve "User2"
-      expect(metamodel.attributes["last_name"]).to eq({:type=>:text, :writable=>false, :readable=>true, :kind=>:static})
+      expect(metamodel.attributes["last_name"]).to eq({:type=>:string, :writable=>false, :readable=>true, :kind=>:static})
     end
   end
 
@@ -47,7 +47,7 @@ describe "Simple::Store::Metamodel.register" do
 
     it "replaces existing attribute options" do
       metamodel = Simple::Store::Metamodel.resolve "User2"
-      expect(metamodel.attributes["last_name"]).to eq({:type=>:text, :writable=>false, :readable=>true, :kind=>:static})
+      expect(metamodel.attributes["last_name"]).to eq({:type=>:string, :writable=>false, :readable=>true, :kind=>:static})
     end
   end
 end
