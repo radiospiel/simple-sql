@@ -3,6 +3,30 @@ module Simple::Store::Storage
 
   Model = Simple::Store::Model
 
+  METAMODEL_TYPE_BY_PG_DATA_TYPE = {
+    "character varying"            => :string,
+    "timestamp without time zone"  => :timestamp,
+    "USER-DEFINED"                 => :string # enums
+  }
+
+  READONLY_ATTRIBUTES = %(created_at updated_at id type)
+
+  def register_static_attributes(metamodel, fq_table_name:)
+    column_info = Simple::SQL::Reflection.column_info(fq_table_name)
+    raise ArgumentError, "No such table #{fq_table_name.inspect}" if column_info.empty?
+
+    column_info.each do |name, ostruct|
+      next if name == "meta_data"
+
+      data_type = ostruct.data_type
+      type = (METAMODEL_TYPE_BY_PG_DATA_TYPE[data_type] || data_type.to_sym)
+
+      metamodel.attribute name, type, writable: !READONLY_ATTRIBUTES.include?(name),
+                                      readable: true,
+                                      kind:     :static
+    end
+  end
+
   def convert_one_to_storage_representation(metamodel, model)
     # Extract and merge static and dynamic attributes
     record   = extract_static_attributes(metamodel, model)
@@ -13,7 +37,7 @@ module Simple::Store::Storage
 
     # Remove type attribute if this table doesn't have a type column
     # (but is statically typed instead.)
-    record.delete "type" unless metamodel.column?("type")
+    record.delete "type" unless metamodel.attribute?("type")
     record
   end
 

@@ -1,6 +1,7 @@
 class Simple::Store::Metamodel; end
 
 require_relative "metamodel/registry"
+require_relative "storage"
 
 # rubocop:disable Metrics/ClassLength
 class Simple::Store::Metamodel
@@ -8,6 +9,7 @@ class Simple::Store::Metamodel
   NAME_REGEXP = /\A[A-Z][A-Za-z0-9_]*(::[A-Z][A-Za-z0-9_]*)*\z/
 
   Model = ::Simple::Store::Model
+  Storage = ::Simple::Store::Storage
 
   def self.register(name, table_name:, &block)
     expect! name => /^[A-Z]/
@@ -155,52 +157,11 @@ class Simple::Store::Metamodel
     name, table_name = attrs.values_at :name, :table_name
 
     @attributes = {}
-    @name = name || table_name.split(".").last.singularize.camelize
+    @name       = name || table_name.split(".").last.singularize.camelize
     @table_name = table_name
 
-    read_attributes_from_table
+    Storage.register_static_attributes(self, fq_table_name: table_name)
 
     instance_eval(&block) if block
-  end
-
-  private
-
-  def column_info
-    column_info = Simple::SQL::Reflection.column_info(table_name)
-    raise ArgumentError, "No such table #{table_name.inspect}" if column_info.empty?
-    column_info
-  end
-
-  public
-
-  def column?(name)
-    column_info.key? name
-  end
-
-  private
-
-  TYPE_BY_PG_DATA_TYPE = {
-    "character varying"            => :string,
-    "timestamp without time zone"  => :timestamp,
-    "USER-DEFINED"                 => :string # enums
-  }
-
-  READONLY_ATTRIBUTES = %(created_at updated_at id type)
-
-  def read_attributes_from_table
-    column_info.each do |name, ostruct|
-      next if name == "meta_data"
-
-      data_type = ostruct.data_type
-      type = (TYPE_BY_PG_DATA_TYPE[data_type] || data_type.to_sym)
-
-      options = {
-        writable: !READONLY_ATTRIBUTES.include?(name),
-        readable: true,
-        kind:     :static
-      }
-
-      attribute name, type, options
-    end
   end
 end
