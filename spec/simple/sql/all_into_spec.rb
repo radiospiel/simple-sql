@@ -15,23 +15,6 @@ describe "Simple::SQL.ask into: :struct" do
       r = SQL.all("SELECT * FROM users WHERE FALSE", into: Hash)
       expect(r).to eq([])
     end
-
-    it "yields the results into a block" do
-      received = []
-      SQL.all("SELECT id FROM users", into: Hash) do |hsh|
-        received << hsh
-      end
-      expect(received.length).to eq(USER_COUNT)
-      expect(received.map(&:class).uniq).to eq([Hash])
-    end
-
-    it "does not yield if there is no match" do
-      received = []
-      SQL.all("SELECT id FROM users WHERE FALSE", into: Hash) do |hsh|
-        received << hsh
-      end
-      expect(received.length).to eq(0)
-    end
   end
 
   describe "into: :struct" do

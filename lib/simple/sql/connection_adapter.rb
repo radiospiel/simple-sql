@@ -32,50 +32,34 @@ module Simple::SQL::ConnectionAdapter
   # end
 
   def all(sql, *args, into: nil, &block)
-    pg_result = exec_logged(sql, *args)
+    raise ArgumentError, "all no longer support blocks, use each instead." if block
+    rows = []
+    my_pg_source_oid = nil
 
-    # enumerate the rows in pg_result. This returns either an Array of Hashes
-    # (if into is set), or an array of row arrays or of singular values.
-    #
-    # Even if into is set to something different than a Hash, we'll convert
-    # each row into a Hash initially, and only later convert it to the final
-    # target type (via RowConverter.convert_ary). This is to allow to fill in
-    # more entries later on.
-    records = enumerate(pg_result, into: into)
+    each_without_conversion(sql, *args, into: into) do |row, pg_source_oid|
+      rows << row
+      my_pg_source_oid = pg_source_oid
+    end
 
-    # optimization: If we wouldn't clear here the GC would do this later.
-    pg_result.clear unless pg_result.autoclear?
+    record_set = convert_rows_to_result rows, into: into, pg_source_oid: my_pg_source_oid
 
     # [TODO] - resolve associations. Note that this is only possible if the type
     # is not an Array (i.e. into is nil)
 
     if sql.is_a?(Scope) && sql.paginated?
-      records.send(:set_pagination_info, sql)
+      record_set.send(:set_pagination_info, sql)
     end
 
-    records.each(&block) if block
-    records
+    record_set
   end
 
-  def each(sql, *args, into: nil, &block)
+  def each(sql, *args, into: nil)
     raise ArgumentError, "Missing block" unless block_given?
 
-    pg_result = exec_logged(sql, *args)
-
-    if pg_result.ntuples > 0 && pg_result.nfields > 0
-      pg_source_oid = pg_result.ftable(0)
-
-      decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
-
-      pg_result.each_row do |row| 
-        record = decoder.decode(row)
-        record = Result.build([record], target_type: into, pg_source_oid: pg_source_oid).first
-        yield record
-      end
+    each_without_conversion sql, *args, into: into do |row, pg_source_oid|
+      record = convert_row_to_record row, into: into, pg_source_oid: pg_source_oid
+      yield record
     end
-
-    # optimization: If we wouldn't clear here the GC would do this later.
-    pg_result.clear unless pg_result.autoclear?
 
     self
   end
@@ -99,7 +83,7 @@ module Simple::SQL::ConnectionAdapter
   #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
   def ask(sql, *args, into: nil)
     catch(:ok) do
-      all(sql, *args, into: into) { |row| throw :ok, row }
+      each(sql, *args, into: into) { |row| throw :ok, row }
       nil
     end
   end
@@ -119,6 +103,8 @@ module Simple::SQL::ConnectionAdapter
 
   private
 
+  Result = ::Simple::SQL::Result
+  Decoder = ::Simple::SQL::Helpers::Decoder
   Encoder = ::Simple::SQL::Helpers::Encoder
 
   def exec_logged(sql_or_scope, *args)
@@ -136,20 +122,28 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
-  Result = ::Simple::SQL::Result
-  Decoder = ::Simple::SQL::Helpers::Decoder
-
-  def enumerate(pg_result, into:)
-    records = []
-    pg_source_oid = nil
+  def each_without_conversion(sql, *args, into: nil)
+    pg_result = exec_logged(sql, *args)
 
     if pg_result.ntuples > 0 && pg_result.nfields > 0
       decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
       pg_source_oid = pg_result.ftable(0)
-      pg_result.each_row { |row| records << decoder.decode(row) }
+
+      pg_result.each_row do |row|
+        yield decoder.decode(row), pg_source_oid
+      end
     end
 
-    Result.build(records, target_type: into, pg_source_oid: pg_source_oid)
+    # optimization: If we wouldn't clear here the GC would do this later.
+    pg_result.clear unless pg_result.autoclear?
+  end
+
+  def convert_row_to_record(row, into:, pg_source_oid:)
+    convert_rows_to_result([row], into: into, pg_source_oid: pg_source_oid).first
+  end
+
+  def convert_rows_to_result(rows, into:, pg_source_oid:)
+    Result.build(rows, target_type: into, pg_source_oid: pg_source_oid)
   end
 
   public
