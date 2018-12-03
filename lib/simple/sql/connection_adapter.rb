@@ -57,6 +57,29 @@ module Simple::SQL::ConnectionAdapter
     records
   end
 
+  def each(sql, *args, into: nil, &block)
+    raise ArgumentError, "Missing block" unless block_given?
+
+    pg_result = exec_logged(sql, *args)
+
+    if pg_result.ntuples > 0 && pg_result.nfields > 0
+      pg_source_oid = pg_result.ftable(0)
+
+      decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
+
+      pg_result.each_row do |row| 
+        record = decoder.decode(row)
+        record = Result.build([record], target_type: into, pg_source_oid: pg_source_oid).first
+        yield record
+      end
+    end
+
+    # optimization: If we wouldn't clear here the GC would do this later.
+    pg_result.clear unless pg_result.autoclear?
+
+    self
+  end
+
   # Runs a query and prints the results via "table_print"
   def print(sql, *args, into: nil)
     raise ArgumentError, "You cannot call Simple::SQL.print with into: #{into.inspect}" unless into.nil?
@@ -88,12 +111,10 @@ module Simple::SQL::ConnectionAdapter
   #
   # - <tt>Simple::SQL.locked(4711) { puts 'do work while locked' }
   def locked(lock_id)
-    begin
-      ask("SELECT pg_advisory_lock(#{lock_id})")
-      yield
-    ensure
-      ask("SELECT pg_advisory_unlock(#{lock_id})")
-    end
+    ask("SELECT pg_advisory_lock(#{lock_id})")
+    yield
+  ensure
+    ask("SELECT pg_advisory_unlock(#{lock_id})")
   end
 
   private
@@ -124,8 +145,8 @@ module Simple::SQL::ConnectionAdapter
 
     if pg_result.ntuples > 0 && pg_result.nfields > 0
       decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
-      pg_result.each_row { |row| records << decoder.decode(row) }
       pg_source_oid = pg_result.ftable(0)
+      pg_result.each_row { |row| records << decoder.decode(row) }
     end
 
     Result.build(records, target_type: into, pg_source_oid: pg_source_oid)
