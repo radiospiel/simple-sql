@@ -7,7 +7,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
   Reflection = ::Simple::SQL::Reflection
 
   def initialize(records, target_type:, pg_source_oid:) # :nodoc:
-    expect! records.first => Hash unless records.empty?
+    # expect! records.first => Hash unless records.empty?
 
     super(records)
 
