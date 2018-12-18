@@ -82,8 +82,15 @@ module Simple
     def connect!(database_url = :auto)
       database_url = Config.determine_url if database_url == :auto
 
+      if Thread.current[:"Simple::SQL.database_url"] == database_url
+        logger.debug "thread #{Thread.current.object_id}: already connected to #{database_url}"
+        return
+      end
+
       connection = Connection.pg_connection(database_url)
       self.connector = lambda { connection }
+
+      Thread.current[:"Simple::SQL.database_url"] = database_url
     end
 
     # disconnects the current connection.
