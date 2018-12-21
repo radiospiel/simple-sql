@@ -29,7 +29,7 @@ module Simple::Store::Storage
 
   def convert_one_to_storage_representation(metamodel, model)
     # Extract and merge static and dynamic attributes
-    record   = extract_static_attributes(metamodel, model)
+    record = extract_static_attributes(metamodel, model)
     meta_data = extract_dynamic_attributes(metamodel, model)
     unless meta_data.empty?
       record["meta_data"] = meta_data

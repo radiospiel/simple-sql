@@ -30,6 +30,8 @@ end
 
 Reload.load_file "config/console-init.rb"
 
+require "benchmark"
+
 require "irb"
 require "irb/completion"
 
