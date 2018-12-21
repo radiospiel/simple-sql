@@ -99,8 +99,6 @@ module Simple
 
       connection.disconnect!
       self.connector = nil
-
-      Thread.current[:"Simple::SQL.database_url"] = database_url
     end
   end
 end
