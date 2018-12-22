@@ -10,7 +10,7 @@ AllCops:
     - 'Rakefile'
 
 Metrics/LineLength:
-  Max: 120
+  Max: 140
 
 Metrics/MethodLength:
   Max: 20
@@ -72,3 +72,7 @@ Style/IfUnlessModifier:
 
 Style/PerlBackrefs:
   Enabled: false
+
+Style/TrailingUnderscoreVariable:
+  Enabled: false
+  

@@ -12,7 +12,7 @@ module Simple::SQL::ConnectionAdapter
   # arguments - since the pg client does not support this - but it allows to
   # run multiple sql statements separated by ";"
   def exec(sql)
-    Logging.yield_logged sql do
+    Logging.with_logged_query sql do
       raw_connection.exec sql
     end
   end
@@ -117,7 +117,7 @@ module Simple::SQL::ConnectionAdapter
       sql = sql_or_scope
     end
 
-    Logging.yield_logged sql, *args do
+    Logging.with_logged_query sql, *args do
       raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args))
     end
   end

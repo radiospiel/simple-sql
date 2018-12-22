@@ -1,3 +1,7 @@
+# rubocop:disable Metrics/AbcSize
+
+require_relative "formatting"
+
 module Simple
   module SQL
     module Logging
@@ -38,25 +42,67 @@ module Simple
       extend Forwardable
       delegate [:debug, :info, :warn, :error, :fatal] => :logger
 
-      def yield_logged(sql, *args, &_block)
+      def slow_query_treshold
+        @slow_query_treshold
+      end
+
+      def slow_query_treshold=(slow_query_treshold)
+        expect! slow_query_treshold > 0
+        @slow_query_treshold = slow_query_treshold
+      end
+
+      def with_logged_query(sql, *args, &_block)
         r0 = Time.now
         rv = yield
-        realtime = Time.now - r0
-        debug "[sql] %.3f secs: %s" % [realtime, format_query(sql, *args)]
+        runtime = Time.now - r0
+
+        logger.debug do
+          "[sql] %.3f secs: %s" % [runtime, Formatting.format(sql, *args)]
+        end
+
+        if slow_query_treshold && runtime > slow_query_treshold
+          log_slow_query(sql, *args, runtime: runtime)
+        end
+
         rv
       rescue StandardError => e
-        realtime = Time.now - r0
-        warn "[sql] %.3f secs: %s:\n\tfailed with error %s" % [realtime, format_query(sql, *args), e.message]
+        runtime = Time.now - r0
+        logger.warn do
+          "[sql] %.3f secs: %s:\n\tfailed with error %s" % [runtime, Formatting.format(sql, *args), e.message]
+        end
+
         raise
       end
 
       private
 
-      def format_query(sql, *args)
-        sql = sql.gsub(/\s*\n\s*/, " ").gsub(/(\A\s+)|(\s+\z)/, "")
-        return sql if args.empty?
-        args = args.map(&:inspect).join(", ")
-        sql + " w/args: #{args}"
+      Formatting = ::Simple::SQL::Formatting
+
+      def log_slow_query(sql, *args, runtime:)
+        # Do not try to analyze an EXPLAIN query. This prevents endless recursion here
+        # (and, in general, would not be useful anyways.)
+        return if sql =~ /^EXPLAIN /
+
+        log_multiple_lines ::Logger::WARN, prefix: "[sql-slow]" do
+          formatted_query = Formatting.pretty_format(sql, *args)
+          query_plan = ::Simple::SQL.all "EXPLAIN ANALYZE #{sql}", *args
+
+          <<~MSG
+            === slow query detected: (#{'%.3f secs' % runtime}) ===================================================================================
+            #{formatted_query}
+            --- query plan: -------------------------------------------------------------------
+            #{query_plan.join("\n")}
+            ===================================================================================
+          MSG
+        end
+      end
+
+      def log_multiple_lines(level, str = nil, prefix:)
+        logger.log(level) do
+          str = yield if str.nil?
+          str = str.gsub("\n", "\n#{prefix} ") if prefix
+          str
+        end
       end
     end
   end
