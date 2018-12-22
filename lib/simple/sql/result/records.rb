@@ -1,4 +1,4 @@
-# xrubocop:disable Metrics/ParameterLists
+# rubocop:disable Naming/UncommunicativeMethodParamName
 
 require_relative "association_loader"
 require "simple/sql/reflection"

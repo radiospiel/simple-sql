@@ -6,6 +6,7 @@ module Simple::SQL::Helpers::Decoder
 
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable Naming/UncommunicativeMethodParamName
   def decode_value(type, s)
     case type
     when :unknown                       then s
@@ -31,7 +32,6 @@ module Simple::SQL::Helpers::Decoder
   end
   # rubocop:enable Metrics/AbcSize
   # rubocop:enable Metrics/CyclomaticComplexity
-  # rubocop:enable Metrics/MethodLength
 
   require "pg_array_parser"
   extend PgArrayParser

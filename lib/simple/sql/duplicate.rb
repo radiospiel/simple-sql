@@ -55,6 +55,7 @@ module Simple
           unless value.is_a?(Fragment)
             raise ArgumentError, "Pass in override values via SQL.fragment (for #{value.inspect})"
           end
+
           hsh.update key.to_s => value.to_sql
         end
       end

@@ -1,5 +1,3 @@
-
-
 class Simple::SQL::Scope
   def order_by(sql_fragment)
     duplicate.send(:order_by!, sql_fragment)

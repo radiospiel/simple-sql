@@ -41,7 +41,7 @@ module Simple
           SELECT table_schema || '.' || table_name AS name, *
           FROM information_schema.tables
           WHERE table_schema=$1
-          SQL
+        SQL
         records_by_attr(recs, :name)
       end
 

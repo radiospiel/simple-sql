@@ -14,6 +14,7 @@ class Simple::SQL::Helpers::Immutable
     case object
     when Array
       raise ArgumentError, "Object nested too deep (or inner loop?)" if max_depth < 0
+
       object.map { |obj| create obj, max_depth - 1 }
     when Hash
       new(object)
@@ -64,6 +65,8 @@ class Simple::SQL::Helpers::Immutable
 end
 
 if $PROGRAM_NAME == __FILE__
+
+  # rubocop:disable Metrics/AbcSize
 
   require "test-unit"
 
@@ -146,5 +149,4 @@ if $PROGRAM_NAME == __FILE__
     end
   end
 
-  # rubocop:enable Style/ClassAndModuleChildren
 end

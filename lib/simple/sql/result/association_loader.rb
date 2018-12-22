@@ -2,6 +2,7 @@
 # rubocop:disable Metrics/MethodLength
 # rubocop:disable Metrics/ParameterLists
 # rubocop:disable Style/GuardClause
+# rubocop:disable Naming/UncommunicativeMethodParamName
 
 require "active_support/core_ext/string/inflections"
 
@@ -164,6 +165,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
       if order_by || limit
         raise ArgumentError, "#{association.inspect} is a singular association, w/o support for order_by: and limit:"
       end
+
       preload_belongs_to records, relation, as: as
     else
       preload_has_one_or_many records, relation, as: as, order_by: order_by, limit: limit

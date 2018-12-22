@@ -33,6 +33,7 @@ module Simple::SQL::ConnectionAdapter
 
   def all(sql, *args, into: nil, &block)
     raise ArgumentError, "all no longer support blocks, use each instead." if block
+
     rows = []
     my_pg_source_oid = nil
 
@@ -67,6 +68,7 @@ module Simple::SQL::ConnectionAdapter
   # Runs a query and prints the results via "table_print"
   def print(sql, *args, into: nil)
     raise ArgumentError, "You cannot call Simple::SQL.print with into: #{into.inspect}" unless into.nil?
+
     require "table_print"
     records = all sql, *args, into: Hash
     tp records

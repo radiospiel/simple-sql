@@ -29,7 +29,10 @@ module Simple
           return logger if logger
         end
 
-        # returns a stderr_logger
+        stderr_logger
+      end
+
+      def stderr_logger
         @stderr_logger ||= begin
           logger = Logger.new(STDERR)
           logger.level = Logger::INFO
