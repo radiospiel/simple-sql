@@ -84,8 +84,7 @@ module Simple
       public
 
       def lookup_pg_class(oid)
-        @pg_classes ||= {}
-        @pg_classes[oid] ||= _lookup_pg_class(oid)
+        @pg_classes ||= Hash.new { |hsh, key| hsh[key] = _lookup_pg_class(oid) }
       end
 
       private
