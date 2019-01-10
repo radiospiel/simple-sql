@@ -3,6 +3,8 @@ module Simple
     module Formatting
       extend self
 
+      MAX_LENGTH = 500
+
       def format(sql, *args)
         sql = format_sql(sql)
 
@@ -10,7 +12,7 @@ module Simple
 
         args = args.map(&:inspect).join(", ")
         sql += " w/args: #{args}"
-        sql = sql[0, 98] + "..." if sql.length > 100
+        sql = sql[0, (MAX_LENGTH - 3)] + "..." if sql.length > MAX_LENGTH
         sql
       end
 
