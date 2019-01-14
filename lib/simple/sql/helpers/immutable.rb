@@ -51,6 +51,10 @@ class Simple::SQL::Helpers::Immutable
       super
   end
 
+  def to_hash
+    @hsh
+  end
+
   def inspect
     "<Immutable: #{@hsh.inspect}>"
   end
