@@ -9,16 +9,11 @@
 # includes a quiet simplistic Transaction implementation
 class Simple::SQL::Connection
   def self.create(database_url = :auto)
-    case database_url
-    when :auto
-      if defined?(::ActiveRecord)
-        ActiveRecordConnection.new
-      else
-        RawConnection.new Simple::SQL::Config.determine_url
-      end
-    else
-      RawConnection.new database_url
-    end
+    return ActiveRecordConnection.new if database_url == :auto && defined?(::ActiveRecord)
+
+    database_url = Simple::SQL::Config.determine_url if database_url == :auto
+
+    RawConnection.new database_url
   end
 
   include Simple::SQL::ConnectionAdapter

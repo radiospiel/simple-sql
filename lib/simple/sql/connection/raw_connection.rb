@@ -1,19 +1,30 @@
 require "pg"
 
 class Simple::SQL::Connection::RawConnection < Simple::SQL::Connection
-  attr_reader :raw_connection
-
   def initialize(database_url)
-    @database_url   = database_url
-    @raw_connection = PG::Connection.new(@database_url)
+    @database_url = database_url
+    raw_connection
+  end
+
+  def raw_connection
+    Thread.current[thread_local_storage_id] ||= PG::Connection.new(@database_url)
   end
 
   def disconnect!
-    return unless @raw_connection
+    raw_connection = Thread.current[thread_local_storage_id]
+    return unless raw_connection
 
-    @raw_connection.finish unless @raw_connection.finished?
-    @raw_connection = nil
+    raw_connection.finish unless raw_connection.finished?
+    Thread.current[thread_local_storage_id] = nil
   end
+
+  private
+
+  def thread_local_storage_id
+    @thread_local_storage_id ||= :"Simple::SQL::Connection::RawConnection.tls_key@#{object_id}"
+  end
+
+  public
 
   def transaction(&_block)
     @tx_nesting_level ||= 0
