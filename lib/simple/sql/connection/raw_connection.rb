@@ -1,11 +1,20 @@
 require "pg"
 
 class Simple::SQL::Connection::RawConnection < Simple::SQL::Connection
+  SELF = self
+
   attr_reader :raw_connection
 
   def initialize(database_url)
-    @database_url   = database_url
+    @database_url = database_url
     @raw_connection = PG::Connection.new(@database_url)
+    ObjectSpace.define_finalizer(self, SELF.finalizer(@raw_connection))
+  end
+
+  def self.finalizer(raw_connection)
+    proc do
+      raw_connection.finish unless raw_connection.finished?
+    end
   end
 
   def disconnect!
