@@ -87,8 +87,8 @@ module Simple
         return if sql =~ /^EXPLAIN /
 
         log_multiple_lines ::Logger::WARN, prefix: "[sql-slow]" do
-          formatted_query = Formatting.pretty_format(sql, *args)
-          query_plan = ::Simple::SQL.all "EXPLAIN ANALYZE #{sql}", *args
+          formatted_query = Formatting.format(sql, *args)
+          query_plan = ::Simple::SQL.all "EXPLAIN #{sql}", *args
 
           <<~MSG
             === slow query detected: (#{'%.3f secs' % runtime}) ===================================================================================

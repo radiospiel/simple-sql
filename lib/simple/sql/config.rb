@@ -39,11 +39,11 @@ module Simple::SQL::Config
     username, password, host, port, database = abc.values_at "username", "password", "host", "port", "database"
 
     URI::Generic.build(
-      scheme: "postgres", 
-      userinfo: [ username, (":" if password), password ].join,
+      scheme: "postgres",
+      userinfo: [username, (":" if password), password].join,
       host: host || "localhost",
       port: port,
-      path: "/#{database}" 
+      path: "/#{database}"
     ).to_s
   end
 

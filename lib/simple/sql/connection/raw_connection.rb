@@ -1,14 +1,32 @@
-# private
-module Simple::SQL::SimpleTransactions
-  def tx_nesting_level
-    @tx_nesting_level ||= 0
+require "pg"
+
+class Simple::SQL::Connection::RawConnection < Simple::SQL::Connection
+  SELF = self
+
+  attr_reader :raw_connection
+
+  def initialize(database_url)
+    @database_url = database_url
+    @raw_connection = PG::Connection.new(@database_url)
+    ObjectSpace.define_finalizer(self, SELF.finalizer(@raw_connection))
   end
 
-  def tx_nesting_level=(tx_nesting_level)
-    @tx_nesting_level = tx_nesting_level
+  def self.finalizer(raw_connection)
+    proc do
+      raw_connection.finish unless raw_connection.finished?
+    end
+  end
+
+  def disconnect!
+    return unless @raw_connection
+
+    @raw_connection.finish unless @raw_connection.finished?
+    @raw_connection = nil
   end
 
   def transaction(&_block)
+    @tx_nesting_level ||= 0
+
     # Notes: by using "ensure" (as opposed to rescue) we are rolling back
     # both when an exception was raised and when a value was thrown. This
     # also means we have to track whether or not to rollback. i.e. do roll
@@ -18,12 +36,12 @@ module Simple::SQL::SimpleTransactions
     # Rolling back from inside a nested transaction would require SAVEPOINT
     # support; without the code is simpler at least :)
 
-    if tx_nesting_level == 0
+    if @tx_nesting_level == 0
       exec "BEGIN"
       tx_started = true
     end
 
-    self.tx_nesting_level += 1
+    @tx_nesting_level += 1
 
     return_value = yield
 
@@ -35,7 +53,7 @@ module Simple::SQL::SimpleTransactions
 
     return_value
   ensure
-    self.tx_nesting_level -= 1
+    @tx_nesting_level -= 1
     if tx_started && !tx_committed
       exec "ROLLBACK"
     end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 $: << "lib"
 require "simple/sql"
-require "simple/store"
+#require "simple/store"
 
 SQL = Simple::SQL
 SQL.connect!
