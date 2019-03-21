@@ -24,11 +24,11 @@ class Simple::SQL::Scope
   #
   #     Simple::SQL::Scope.new(table: "mytable", select: "*", where: { id: 1, foo: "bar" }, order_by: "id desc")
   #
-  def initialize(sql)
+  def initialize(sql, args = [])
     expect! sql => [String, Hash]
 
     @sql     = nil
-    @args    = []
+    @args    = args
     @filters = []
 
     case sql
