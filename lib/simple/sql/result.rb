@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/AbcSize
 # rubocop:disable Naming/AccessorMethodName
 
 require_relative "helpers"
@@ -31,21 +30,54 @@ class ::Simple::SQL::Result < Array
     replace(records)
   end
 
+  # returns a fast estimate for the total_count of search hits
+  #
+  # This is filled in when resolving a paginated scope.
+  def total_count_estimate
+    @total_count_estimate ||= catch(:total_count_estimate) do
+      scope = @pagination_scope
+      scope_sql = scope.order_by(nil).to_sql(pagination: false)
+      ::Simple::SQL.each("EXPLAIN #{scope_sql}", *scope.args) do |line|
+        next unless line =~ /\brows=(\d+)/
+
+        throw :total_count_estimate, Integer($1)
+      end
+      -1
+    end
+  end
+
+  # returns the estimated total number of pages of search hits
+  #
+  # This is filled in when resolving a paginated scope.
+  def total_pages_estimate
+    @total_pages_estimate ||= (total_count_estimate * 1.0 / @pagination_scope.per).ceil
+  end
+
   # returns the total_count of search hits
   #
   # This is filled in when resolving a paginated scope.
-  attr_reader :total_count
+  def total_count
+    @total_count ||= begin
+      scope = @pagination_scope
+      scope_sql = scope.order_by(nil).to_sql(pagination: false)
+      ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{scope_sql}) simple_sql_count", *scope.args)
+    end
+  end
 
   # returns the total number of pages of search hits
   #
   # This is filled in when resolving a paginated scope. It takes
   # into account the scope's "per" option.
-  attr_reader :total_pages
+  def total_pages
+    @total_pages ||= (total_count * 1.0 / @pagination_scope.per).ceil
+  end
 
   # returns the current page number in a paginated search
   #
   # This is filled in when resolving a paginated scope.
-  attr_reader :current_page
+  def current_page
+    @current_page ||= @pagination_scope.page
+  end
 
   private
 
@@ -56,14 +88,13 @@ class ::Simple::SQL::Result < Array
       # This branch is an optimization: the call to the database to count is
       # not necessary if we know that there are not even any results on the
       # first page.
-      @total_count  = 0
       @current_page = 1
+      @total_count  = 0
+      @total_pages  = 1
+      @total_count_estimate  = 0
+      @total_pages_estimate  = 1
     else
-      sql = "SELECT COUNT(*) FROM (#{scope.order_by(nil).to_sql(pagination: false)}) simple_sql_count"
-      @total_count = ::Simple::SQL.ask(sql, *scope.args)
-      @current_page = scope.page
+      @pagination_scope = scope
     end
-
-    @total_pages = (@total_count * 1.0 / scope.per).ceil
   end
 end
