@@ -34,15 +34,17 @@ class ::Simple::SQL::Result < Array
   #
   # This is filled in when resolving a paginated scope.
   def total_count_estimate
-    @total_count_estimate ||= catch(:total_count_estimate) do
-      scope = @pagination_scope
-      scope_sql = scope.order_by(nil).to_sql(pagination: false)
-      ::Simple::SQL.each("EXPLAIN #{scope_sql}", *scope.args) do |line|
-        next unless line =~ /\brows=(\d+)/
-
-        throw :total_count_estimate, Integer($1)
+    return @total_count_estimate if instance_variable_defined?(:@total_count_estimate)
+    
+    @total_count_estimate = if @pagination_scope
+      catch(:total_count_estimate) do
+        sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
+        ::Simple::SQL.each("EXPLAIN #{sql}", *@pagination_scope.args) do |line|
+          next unless line =~ /\brows=(\d+)/
+          throw :total_count_estimate, Integer($1)
+        end
+        -1
       end
-      -1
     end
   end
 
@@ -50,17 +52,20 @@ class ::Simple::SQL::Result < Array
   #
   # This is filled in when resolving a paginated scope.
   def total_pages_estimate
-    @total_pages_estimate ||= (total_count_estimate * 1.0 / @pagination_scope.per).ceil
+    return @total_pages_estimate if instance_variable_defined?(:@total_pages_estimate)
+    
+    @total_pages_estimate = (total_count_estimate * 1.0 / @pagination_scope.per).ceil if @pagination_scope
   end
 
   # returns the total_count of search hits
   #
   # This is filled in when resolving a paginated scope.
   def total_count
-    @total_count ||= begin
-      scope = @pagination_scope
-      scope_sql = scope.order_by(nil).to_sql(pagination: false)
-      ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{scope_sql}) simple_sql_count", *scope.args)
+    return @total_count if instance_variable_defined?(:@total_count)
+
+    @total_count = if @pagination_scope
+      sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
+      ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{sql}) _total_count", *@pagination_scope.args)
     end
   end
 
@@ -69,7 +74,9 @@ class ::Simple::SQL::Result < Array
   # This is filled in when resolving a paginated scope. It takes
   # into account the scope's "per" option.
   def total_pages
-    @total_pages ||= (total_count * 1.0 / @pagination_scope.per).ceil
+    return @total_pages if instance_variable_defined?(:@total_pages)
+
+    @total_pages = (total_count * 1.0 / @pagination_scope.per).ceil if @pagination_scope
   end
 
   # returns the current page number in a paginated search
