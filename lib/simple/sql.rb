@@ -35,6 +35,11 @@ module Simple
       Connection.create(database_url)
     end
 
+    # deprecated
+    def configuration
+      Config.parse_url(Config.determine_url)
+    end
+
     # -- default connection ---------------------------------------------------
 
     DEFAULT_CONNECTION_KEY = :"Simple::SQL.default_connection"
