@@ -35,17 +35,8 @@ class ::Simple::SQL::Result < Array
   # This is filled in when resolving a paginated scope.
   def total_count_estimate
     return @total_count_estimate if instance_variable_defined?(:@total_count_estimate)
-    
-    @total_count_estimate = if @pagination_scope
-      catch(:total_count_estimate) do
-        sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
-        ::Simple::SQL.each("EXPLAIN #{sql}", *@pagination_scope.args) do |line|
-          next unless line =~ /\brows=(\d+)/
-          throw :total_count_estimate, Integer($1)
-        end
-        -1
-      end
-    end
+
+    @total_count_estimate = _total_count_estimate
   end
 
   # returns the estimated total number of pages of search hits
@@ -53,7 +44,7 @@ class ::Simple::SQL::Result < Array
   # This is filled in when resolving a paginated scope.
   def total_pages_estimate
     return @total_pages_estimate if instance_variable_defined?(:@total_pages_estimate)
-    
+
     @total_pages_estimate = (total_count_estimate * 1.0 / @pagination_scope.per).ceil if @pagination_scope
   end
 
@@ -63,10 +54,7 @@ class ::Simple::SQL::Result < Array
   def total_count
     return @total_count if instance_variable_defined?(:@total_count)
 
-    @total_count = if @pagination_scope
-      sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
-      ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{sql}) _total_count", *@pagination_scope.args)
-    end
+    @total_count = _total_count
   end
 
   # returns the total number of pages of search hits
@@ -103,5 +91,24 @@ class ::Simple::SQL::Result < Array
     else
       @pagination_scope = scope
     end
+  end
+
+  def _total_count_estimate
+    return unless @pagination_scope
+
+    sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
+    ::Simple::SQL.each("EXPLAIN #{sql}", *@pagination_scope.args) do |line|
+      next unless line =~ /\brows=(\d+)/
+      return Integer($1)
+    end
+
+    -1
+  end
+
+  def _total_count
+    return unless @pagination_scope
+
+    sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
+    ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{sql}) _total_count", *@pagination_scope.args)
   end
 end
