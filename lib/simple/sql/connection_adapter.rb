@@ -90,6 +90,16 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
+  # returns an Array [min_cost, max_cost] based on the database's estimation
+  def costs(sql, *args)
+    explanation_first = Simple::SQL.ask "EXPLAIN #{sql}", *args
+    unless explanation_first =~ /cost=(\d+(\.\d+))\.+(\d+(\.\d+))/
+      raise "Cannot determine cost"
+    end
+
+    [Float($1), Float($3)]
+  end
+
   # Executes a block, usually of db insert code, while holding an
   # advisory lock.
   #

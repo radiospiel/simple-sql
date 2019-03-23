@@ -4,6 +4,7 @@ require_relative "scope/filters.rb"
 require_relative "scope/order.rb"
 require_relative "scope/pagination.rb"
 require_relative "scope/count.rb"
+require_relative "scope/count_by_groups.rb"
 
 # The Simple::SQL::Scope class helps building scopes; i.e. objects
 # that start as a quite basic SQL query, and allow one to add

@@ -21,7 +21,7 @@ module Simple
     extend self
 
     extend Forwardable
-    delegate [:ask, :all, :each, :exec, :locked, :print, :transaction, :wait_for_notify] => :default_connection
+    delegate [:ask, :all, :each, :exec, :locked, :print, :transaction, :wait_for_notify, :costs] => :default_connection
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
 
