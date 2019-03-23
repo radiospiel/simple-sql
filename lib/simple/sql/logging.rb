@@ -50,7 +50,7 @@ module Simple
       end
 
       def slow_query_treshold=(slow_query_treshold)
-        expect! slow_query_treshold > 0
+        expect! slow_query_treshold.nil? || slow_query_treshold > 0
         @slow_query_treshold = slow_query_treshold
       end
 
