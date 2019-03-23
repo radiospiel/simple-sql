@@ -1,4 +1,6 @@
 # rubocop:disable Naming/AccessorMethodName
+# rubocop:disable Style/DoubleNegation
+# rubocop:disable Style/GuardClause
 
 require_relative "helpers"
 
@@ -66,31 +68,31 @@ class ::Simple::SQL::Result < Array
   end
 
   def paginated?
-    !! @pagination_scope
+    !!@pagination_scope
   end
 
   private
 
   def pagination_scope
     raise "Only available only for paginated scopes" unless paginated?
-    
+
     @pagination_scope
   end
 
   def set_pagination_info(scope)
     raise ArgumentError, "per must be > 0" unless scope.per > 0
 
+    @pagination_scope = scope
+
+    # This branch is an optimization: the call to the database to count is
+    # not necessary if we know that there are not even any results on the
+    # first page.
     if scope.page <= 1 && empty?
-      # This branch is an optimization: the call to the database to count is
-      # not necessary if we know that there are not even any results on the
-      # first page.
       @current_page = 1
       @total_count  = 0
       @total_pages  = 1
       @total_fast_count  = 0
       @total_fast_pages  = 1
-    else
-      @pagination_scope = scope
     end
   end
 end
