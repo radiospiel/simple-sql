@@ -30,51 +30,48 @@ class ::Simple::SQL::Result < Array
     replace(records)
   end
 
-  # returns a fast estimate for the total_count of search hits
+  # returns the (potentialy estimated) total count of results
   #
-  # This is filled in when resolving a paginated scope.
-  def total_count_estimate
-    return @total_count_estimate if instance_variable_defined?(:@total_count_estimate)
-
-    @total_count_estimate = _total_count_estimate
+  # This is only available for paginated scopes
+  def total_fast_count
+    @total_fast_count ||= pagination_scope.fast_count
   end
 
-  # returns the estimated total number of pages of search hits
+  # returns the (potentialy estimated) total number of pages
   #
-  # This is filled in when resolving a paginated scope.
-  def total_pages_estimate
-    return @total_pages_estimate if instance_variable_defined?(:@total_pages_estimate)
-
-    @total_pages_estimate = (total_count_estimate * 1.0 / @pagination_scope.per).ceil if @pagination_scope
+  # This is only available for paginated scopes
+  def total_fast_pages
+    @total_fast_pages ||= (total_fast_count * 1.0 / pagination_scope.per).ceil
   end
 
-  # returns the total_count of search hits
+  # returns the (potentialy slow) exact total count of results
   #
-  # This is filled in when resolving a paginated scope.
+  # This is only available for paginated scopes
   def total_count
-    return @total_count if instance_variable_defined?(:@total_count)
-
-    @total_count = _total_count
+    @total_count ||= pagination_scope.count
   end
 
-  # returns the total number of pages of search hits
+  # returns the (potentialy estimated) total number of pages
   #
-  # This is filled in when resolving a paginated scope. It takes
-  # into account the scope's "per" option.
+  # This is only available for paginated scopes
   def total_pages
-    return @total_pages if instance_variable_defined?(:@total_pages)
-
-    @total_pages = (total_count * 1.0 / @pagination_scope.per).ceil if @pagination_scope
+    @total_pages ||= (total_count * 1.0 / pagination_scope.per).ceil
   end
 
   # returns the current page number in a paginated search
   #
-  # This is filled in when resolving a paginated scope.
+  # This is only available for paginated scopes
   def current_page
-    @current_page ||= @pagination_scope.page
+    @current_page ||= pagination_scope.page
   end
 
   private
+
+  def pagination_scope
+    return @pagination_scope if @pagination_scope
+
+    raise "Only available only for paginated scopes"
+  end
 
   def set_pagination_info(scope)
     raise ArgumentError, "per must be > 0" unless scope.per > 0
@@ -86,29 +83,10 @@ class ::Simple::SQL::Result < Array
       @current_page = 1
       @total_count  = 0
       @total_pages  = 1
-      @total_count_estimate  = 0
-      @total_pages_estimate  = 1
+      @total_fast_count  = 0
+      @total_fast_pages  = 1
     else
       @pagination_scope = scope
     end
-  end
-
-  def _total_count_estimate
-    return unless @pagination_scope
-
-    sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
-    ::Simple::SQL.each("EXPLAIN #{sql}", *@pagination_scope.args) do |line|
-      next unless line =~ /\brows=(\d+)/
-      return Integer($1)
-    end
-
-    -1
-  end
-
-  def _total_count
-    return unless @pagination_scope
-
-    sql = @pagination_scope.order_by(nil).to_sql(pagination: false)
-    ::Simple::SQL.ask("SELECT COUNT(*) FROM (#{sql}) _total_count", *@pagination_scope.args)
   end
 end
