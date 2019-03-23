@@ -65,12 +65,16 @@ class ::Simple::SQL::Result < Array
     @current_page ||= pagination_scope.page
   end
 
+  def paginated?
+    !! @pagination_scope
+  end
+
   private
 
   def pagination_scope
-    return @pagination_scope if @pagination_scope
-
-    raise "Only available only for paginated scopes"
+    raise "Only available only for paginated scopes" unless paginated?
+    
+    @pagination_scope
   end
 
   def set_pagination_info(scope)
