@@ -1,7 +1,6 @@
 # rubocop:disable Naming/UncommunicativeMethodParamName
 
 require_relative "association_loader"
-require "simple/sql/reflection"
 
 class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
   def initialize(connection, records, target_type:, pg_source_oid:) # :nodoc:

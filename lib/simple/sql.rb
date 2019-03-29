@@ -11,9 +11,6 @@ require_relative "sql/logging"
 require_relative "sql/scope"
 require_relative "sql/connection_adapter"
 require_relative "sql/connection"
-require_relative "sql/reflection"
-require_relative "sql/insert"
-require_relative "sql/duplicate"
 
 module Simple
   # The Simple::SQL module

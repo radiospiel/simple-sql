@@ -1,3 +1,4 @@
+# rubocop:disable Style/StructInheritance
 module Simple
   module SQL
     class Fragment < Struct.new(:to_sql)
