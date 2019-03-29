@@ -61,7 +61,7 @@ namespace :release do
 
   desc "Push code and tags"
   task :push do
-    sh('git push origin master')
+    sh("git push origin #{$TARGET_BRANCH}")
     sh('git push --tags')
   end
 
@@ -71,19 +71,37 @@ namespace :release do
   end
 
   desc "Push Gem to gemfury"
-  task :push_to_rubygems do
+  task :publish do
     Dir.chdir(GEM_ROOT) { sh("gem push #{Dir.glob('*.gem').first}") }
   end
 
+  task :target_master do
+    $TARGET_BRANCH = 'master'
+  end
+
+  task :target_stable do
+    $TARGET_BRANCH = 'stable'
+  end
+
+  task :checkout do
+    sh "git status --untracked-files=no --porcelain > /dev/null || (echo '*** working dir not clean' && false)"
+    sh "git checkout #{$TARGET_BRANCH}"
+    sh "git pull"
+  end
+
   task default: [
+    'checkout',
     'version',
     'clean',
     'build',
     'commit',
     'push',
-    'push_to_rubygems'
+    'publish'
   ]
+
+  task master: %w(target_master default)
+  task stable: %w(target_stable default)
 end
 
 desc "Clean, build, commit and push"
-task release: 'release:default'
+task release: 'release:master'
