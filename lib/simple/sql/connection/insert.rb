@@ -16,20 +16,29 @@ class Simple::SQL::Connection
 
     return [] if records.empty?
 
-    table_name = table.to_s
-    columns = records.first.keys
-
-    @inserters ||= {}
-    inserter = @inserters[[table_name, columns, on_conflict, into]] ||= Inserter.new(self, table_name: table_name, columns: columns, on_conflict: on_conflict, into: into)
+    inserter = inserter(table_name: table.to_s, columns: records.first.keys, on_conflict: on_conflict, into: into)
     inserter.insert(records: records)
   end
 
+  private
+
+  def inserter(table_name:, columns:, on_conflict:, into:)
+    @inserters ||= {}
+    @inserters[[table_name, columns, on_conflict, into]] ||= Inserter.new(self, table_name, columns, on_conflict, into)
+  end
+
   class Inserter
+    CONFICT_HANDLING = {
+      nil      => "",
+      :nothing => "ON CONFLICT DO NOTHING",
+      :ignore  => "ON CONFLICT DO NOTHING"
+    }
+
     #
     # - table_name - the name of the table
     # - columns - name of columns, as Array[String] or Array[Symbol]
     #
-    def initialize(connection, table_name:, columns:, on_conflict:, into:)
+    def initialize(connection, table_name, columns, on_conflict, into)
       expect! on_conflict => CONFICT_HANDLING.keys
       raise ArgumentError, "Cannot insert a record without attributes" if columns.empty?
 
@@ -50,19 +59,7 @@ class Simple::SQL::Connection
 
       returning = into ? "*" : "id"
 
-      @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{confict_handling(on_conflict)} RETURNING #{returning}"
-    end
-
-    CONFICT_HANDLING = {
-      nil      => "",
-      :nothing => "ON CONFLICT DO NOTHING",
-      :ignore  => "ON CONFLICT DO NOTHING"
-    }
-
-    def confict_handling(on_conflict)
-      CONFICT_HANDLING.fetch(on_conflict) do
-        raise(ArgumentError, "Invalid on_conflict value #{on_conflict.inspect}")
-      end
+      @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{CONFICT_HANDLING[on_conflict]} RETURNING #{returning}"
     end
 
     def insert(records:)
