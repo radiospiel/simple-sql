@@ -1,15 +1,12 @@
 # rubocop:disable Naming/UncommunicativeMethodParamName
 
 require_relative "association_loader"
-require "simple/sql/reflection"
 
 class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
-  Reflection = ::Simple::SQL::Reflection
-
-  def initialize(records, target_type:, pg_source_oid:) # :nodoc:
+  def initialize(connection, records, target_type:, pg_source_oid:) # :nodoc:
     # expect! records.first => Hash unless records.empty?
 
-    super(records)
+    super(connection, records)
 
     @hash_records   = records
     @target_type    = target_type
@@ -50,9 +47,10 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
     # resolve oid into table and schema name.
     #
     # [TODO] is this still correct?
-    schema, host_table = Reflection.lookup_pg_class @pg_source_oid
+    schema, host_table = connection.reflection.lookup_pg_class @pg_source_oid
 
-    AssociationLoader.preload @hash_records, association,
+    AssociationLoader.preload connection,
+                              @hash_records, association,
                               host_table: host_table, schema: schema, as: as,
                               order_by: order_by, limit: limit
 
@@ -69,7 +67,7 @@ class ::Simple::SQL::Result::Records < ::Simple::SQL::Result
   def materialize
     records = @hash_records
     if @target_type != Hash
-      schema, host_table = Reflection.lookup_pg_class(@pg_source_oid)
+      schema, host_table = connection.reflection.lookup_pg_class(@pg_source_oid)
       records = RowConverter.convert_row(records, associations: @associations,
                                                   into: @target_type,
                                                   fq_table_name: "#{schema}.#{host_table}")

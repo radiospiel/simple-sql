@@ -1,3 +1,13 @@
+class Simple::SQL::Connection
+end
+
+require_relative "connection/raw_connection"
+require_relative "connection/active_record_connection"
+
+require_relative "connection/reflection"
+require_relative "connection/insert"
+require_relative "connection/duplicate"
+
 # A Connection object.
 #
 # A Connection object is built around a raw connection (as created from the pg
@@ -26,6 +36,3 @@ class Simple::SQL::Connection
   extend Forwardable
   delegate [:wait_for_notify] => :raw_connection
 end
-
-require_relative "connection/raw_connection"
-require_relative "connection/active_record_connection"
