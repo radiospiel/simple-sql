@@ -1,17 +1,16 @@
 module Simple
   module SQL
-    module Reflection
-      extend self
-
-      extend Forwardable
-      delegate [:ask, :all, :records, :record] => ::Simple::SQL
+    class Reflection
+      def initialize(connection)
+        @connection = connection
+      end
 
       def tables(schema: "public")
         table_info(schema: schema).keys
       end
 
       def primary_key_columns(table_name)
-        all <<~SQL, table_name
+        @connection.all <<~SQL, table_name
           SELECT pg_attribute.attname
           FROM   pg_index
           JOIN   pg_attribute ON pg_attribute.attrelid = pg_index.indrelid AND pg_attribute.attnum = ANY(pg_index.indkey)
@@ -37,7 +36,7 @@ module Simple
       end
 
       def table_info(schema: "public")
-        recs = all <<~SQL, schema, into: Hash
+        recs = @connection.all <<~SQL, schema, into: Hash
           SELECT table_schema || '.' || table_name AS name, *
           FROM information_schema.tables
           WHERE table_schema=$1
@@ -54,7 +53,7 @@ module Simple
 
       def _column_info(table_name)
         schema, table_name = parse_table_name(table_name)
-        recs = all <<~SQL, schema, table_name, into: Hash
+        recs = @connection.all <<~SQL, schema, table_name, into: Hash
           SELECT
             column_name AS name,
             *

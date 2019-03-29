@@ -20,15 +20,18 @@ class ::Simple::SQL::Result < Array
   # A Result object is requested via ::Simple::SQL::Result.build, which then
   # chooses the correct implementation, based on the <tt>target_type:</tt>
   # parameter.
-  def self.build(records, target_type:, pg_source_oid:) # :nodoc:
+  def self.build(connection, records, target_type:, pg_source_oid:) # :nodoc:
     if target_type.nil?
-      new(records)
+      new(connection, records)
     else
-      Records.new(records, target_type: target_type, pg_source_oid: pg_source_oid)
+      Records.new(connection, records, target_type: target_type, pg_source_oid: pg_source_oid)
     end
   end
 
-  def initialize(records) # :nodoc:
+  attr_reader :connection
+
+  def initialize(connection, records) # :nodoc:
+    @connection = connection
     replace(records)
   end
 

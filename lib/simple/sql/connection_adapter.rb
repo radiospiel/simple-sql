@@ -155,7 +155,7 @@ module Simple::SQL::ConnectionAdapter
   end
 
   def convert_rows_to_result(rows, into:, pg_source_oid:)
-    Result.build(rows, target_type: into, pg_source_oid: pg_source_oid)
+    Result.build(self, rows, target_type: into, pg_source_oid: pg_source_oid)
   end
 
   public

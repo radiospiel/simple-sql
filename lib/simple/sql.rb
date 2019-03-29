@@ -3,8 +3,8 @@ require "logger"
 require "expectation"
 
 require_relative "sql/version"
+require_relative "sql/fragment"
 require_relative "sql/helpers"
-
 require_relative "sql/result"
 require_relative "sql/config"
 require_relative "sql/logging"
@@ -22,6 +22,9 @@ module Simple
 
     extend Forwardable
     delegate [:ask, :all, :each, :exec, :locked, :print, :transaction, :wait_for_notify, :costs] => :default_connection
+    delegate [:reflection] => :default_connection
+    delegate [:duplicate] => :default_connection
+    delegate [:insert] => :default_connection
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
 
