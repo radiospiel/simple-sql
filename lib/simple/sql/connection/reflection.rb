@@ -1,4 +1,8 @@
 class Simple::SQL::Connection
+  def reset_reflection
+    @reflection = nil
+  end
+
   def reflection
     @reflection ||= Reflection.new(self)
   end
@@ -38,6 +42,18 @@ class Simple::SQL::Connection
       column_info(table_name).keys
     end
 
+    def column_info(table_name)
+      @column_info ||= {}
+      @column_info[table_name] ||= _column_info(table_name)
+    end
+
+    # returns a Hash of column_name => column_type. Names are available both as
+    # Symbol and as String.
+    def column_types(table_name)
+      @column_types ||= {}
+      @column_types[table_name] ||= _column_types(table_name)
+    end
+
     def table_info(schema: "public")
       recs = @connection.all <<~SQL, schema, into: Hash
         SELECT table_schema || '.' || table_name AS name, *
@@ -45,11 +61,6 @@ class Simple::SQL::Connection
         WHERE table_schema=$1
       SQL
       records_by_attr(recs, :name)
-    end
-
-    def column_info(table_name)
-      @column_info ||= {}
-      @column_info[table_name] ||= _column_info(table_name)
     end
 
     private
@@ -65,6 +76,13 @@ class Simple::SQL::Connection
       SQL
 
       records_by_attr(recs, :column_name)
+    end
+
+    def _column_types(table_name)
+      column_info = column_info(table_name)
+      column_info.each_with_object({}) do |(column_name, rec), hsh|
+        hsh[column_name.to_sym] = hsh[column_name.to_s] = rec.data_type
+      end
     end
 
     def parse_table_name(table_name)
