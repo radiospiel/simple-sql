@@ -3,7 +3,7 @@
 # rubocop:disable Metrics/PerceivedComplexity
 # rubocop:disable Layout/AlignHash
 
-# private
+# module to determine database configuration
 module Simple::SQL::Config
   extend self
 
