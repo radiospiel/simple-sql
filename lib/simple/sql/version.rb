@@ -1,5 +1,5 @@
 module Simple
   module SQL
-    VERSION = "0.4.40"
+    VERSION = "0.5.1"
   end
 end
