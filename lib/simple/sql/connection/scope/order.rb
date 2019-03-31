@@ -1,4 +1,4 @@
-class Simple::SQL::Scope
+class Simple::SQL::Connection::Scope
   def order_by(sql_fragment)
     duplicate.send(:order_by!, sql_fragment)
   end

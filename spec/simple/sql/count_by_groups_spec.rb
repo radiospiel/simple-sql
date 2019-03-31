@@ -1,9 +1,9 @@
 require "spec_helper"
 
-describe "Simple::SQL::Scope#count_by" do
+describe "Simple::SQL::Connection::Scope#count_by" do
   let!(:users)        { 1.upto(10).map { |i| create(:user, role_id: i) } }
   let(:all_role_ids)  { SQL.all("SELECT DISTINCT role_id FROM users") }
-  let(:scope)         { SQL::Scope.new("SELECT * FROM users") }
+  let(:scope)         { SQL.scope("SELECT * FROM users") }
 
   describe "enumerate_groups" do
     it "returns all groups" do

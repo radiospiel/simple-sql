@@ -1,6 +1,6 @@
 # rubocop:disable Style/Not
 
-class Simple::SQL::Scope
+class Simple::SQL::Connection::Scope
   # Set pagination
   def paginate(per:, page:)
     duplicate.send(:paginate!, per: per, page: page)

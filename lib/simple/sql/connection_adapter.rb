@@ -6,7 +6,6 @@
 
 module Simple::SQL::ConnectionAdapter
   Logging = ::Simple::SQL::Logging
-  Scope   = ::Simple::SQL::Scope
 
   # execute one or more sql statements. This method does not allow to pass in
   # arguments - since the pg client does not support this - but it allows to
@@ -47,7 +46,7 @@ module Simple::SQL::ConnectionAdapter
     # [TODO] - resolve associations. Note that this is only possible if the type
     # is not an Array (i.e. into is nil)
 
-    if sql.is_a?(Scope) && sql.paginated?
+    if sql.is_a?(::Simple::SQL::Connection::Scope) && sql.paginated?
       record_set.send(:set_pagination_info, sql)
     end
 
@@ -120,8 +119,9 @@ module Simple::SQL::ConnectionAdapter
   Encoder = ::Simple::SQL::Helpers::Encoder
 
   def exec_logged(sql_or_scope, *args)
-    if sql_or_scope.is_a?(Scope)
+    if sql_or_scope.is_a?(::Simple::SQL::Connection::Scope)
       raise ArgumentError, "You cannot call .all with a scope and additional arguments" unless args.empty?
+      raise ArgumentError, "You cannot execute a scope on a different connection" unless self == sql_or_scope.connection
 
       sql  = sql_or_scope.to_sql
       args = sql_or_scope.args

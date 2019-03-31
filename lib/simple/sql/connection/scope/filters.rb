@@ -1,6 +1,6 @@
 # rubocop:disable Style/GuardClause
 
-class Simple::SQL::Scope
+class Simple::SQL::Connection::Scope
   # scope = Scope.new("SELECT * FROM tablename")
   # scope = scope.where(id: 12)
   # scope = scope.where("id > ?", 12)

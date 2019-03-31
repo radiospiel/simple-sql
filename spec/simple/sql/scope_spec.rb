@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe "Simple::SQL::Scope" do
+describe "Simple::SQL::Connection::Scope" do
   def expects(expected_result, sql, *args)
     expect(SQL.ask(sql, *args)).to eq(expected_result)
   end
@@ -10,13 +10,13 @@ describe "Simple::SQL::Scope" do
   end
 
   it 'allows chaining of scopes' do
-    scope1 = SQL::Scope.new "SELECT 1, 2 FROM users"
+    scope1 = SQL.scope "SELECT 1, 2 FROM users"
     scope2 = scope1.where("FALSE")
     expect(scope1.to_sql).not_to eq(scope2.to_sql)
   end
 
   context "without conditions" do
-    let(:scope) { SQL::Scope.new "SELECT 1, 2 FROM users" }
+    let(:scope) { SQL.scope "SELECT 1, 2 FROM users" }
 
     it "runs with SQL.ask" do
       expect(SQL.ask(scope)).to eq([1, 2])
@@ -29,7 +29,7 @@ describe "Simple::SQL::Scope" do
 
   context "with hash conditions" do
     let(:user_id) { SQL.ask "SELECT id FROM users LIMIT 1" }
-    let(:scope)   { SQL::Scope.new "SELECT 1 FROM users" }
+    let(:scope)   { SQL.scope "SELECT 1 FROM users" }
 
     context "that do not match" do
       it "does not match with string keys" do
@@ -71,7 +71,7 @@ describe "Simple::SQL::Scope" do
   context "with non-argument conditions" do
     context "that do not match" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("id < 0")
         scope.where("TRUE")
       end
@@ -87,7 +87,7 @@ describe "Simple::SQL::Scope" do
 
     context "that do match" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("id >= 0")
         scope.where("TRUE")
       end
@@ -105,7 +105,7 @@ describe "Simple::SQL::Scope" do
   context "with argument conditions" do
     context "that do not match" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("first_name NOT LIKE ?", "First%")
         scope.where("id < ?", 0)
       end
@@ -121,7 +121,7 @@ describe "Simple::SQL::Scope" do
 
     context "where both match" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("first_name LIKE ?", "First%")
         scope.where("id >= ?", 0)
       end
@@ -137,7 +137,7 @@ describe "Simple::SQL::Scope" do
 
     context "where first condition matches" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("first_name LIKE ?", "First%")
         scope.where("id < ?", 0)
       end
@@ -149,7 +149,7 @@ describe "Simple::SQL::Scope" do
 
     context "where second condition matches" do
       let(:scope) do
-        scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+        scope = SQL.scope "SELECT 1, 2 FROM users"
         scope = scope.where("first_name LIKE ?", "Boo%")
         scope.where("id >= ?", 0)
       end
@@ -160,7 +160,7 @@ describe "Simple::SQL::Scope" do
     end
 
     describe "hash matches" do
-      let(:scope) { SQL::Scope.new("SELECT id FROM users") }
+      let(:scope) { SQL.scope("SELECT id FROM users") }
 
       it 'validates hash keys' do
         expect {
@@ -178,7 +178,7 @@ describe "Simple::SQL::Scope" do
       end
 
       def ids_matching(condition)
-        scope = SQL::Scope.new("SELECT id FROM users")
+        scope = SQL.scope("SELECT id FROM users")
         scope = scope.where(condition)
         SQL.all(scope)
       end
@@ -205,22 +205,22 @@ describe "Simple::SQL::Scope" do
 
   context "Building with Hash" do
     it "runs with SQL.ask" do
-      scope = SQL::Scope.new table: "users", select: "1, 2", where: "id >= 0"
+      scope = SQL.scope table: "users", select: "1, 2", where: "id >= 0"
       expect(SQL.all(scope)).to eq([[1,2], [1,2]])
 
-      scope = SQL::Scope.new table: "users", select: [1,3,4], where: "id >= 0"
+      scope = SQL.scope table: "users", select: [1,3,4], where: "id >= 0"
       expect(SQL.all(scope)).to eq([[1,3,4], [1,3,4]])
     end
     
     it "raises an error with missing or invalid attributes" do
-      expect { SQL::Scope.new table: "users", limit: 1 }.to raise_error(ArgumentError)
-      expect { SQL::Scope.new select: "*" }.to raise_error(ArgumentError)
+      expect { SQL.scope table: "users", limit: 1 }.to raise_error(ArgumentError)
+      expect { SQL.scope select: "*" }.to raise_error(ArgumentError)
     end
   end
 
   context "describe pagination" do
     let(:scope) do
-      scope = SQL::Scope.new "SELECT 1, 2 FROM users"
+      scope = SQL.scope "SELECT 1, 2 FROM users"
       scope = scope.where("first_name LIKE ?", "First%")
       scope.where("id > ?", 0)
     end

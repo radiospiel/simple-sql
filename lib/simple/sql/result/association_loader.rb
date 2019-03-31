@@ -86,16 +86,16 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   end
 
   # preloads a belongs_to association.
-  def preload_belongs_to(records, relation, as:)
+  def preload_belongs_to(connection, records, relation, as:)
     belonging_column = relation.belonging_column.to_sym
     having_column = relation.having_column.to_sym
 
     foreign_ids = H.pluck(records, belonging_column).uniq.compact
 
-    scope = SQL::Scope.new(table: relation.having_table)
+    scope = connection.scope(table: relation.having_table)
     scope = scope.where(having_column => foreign_ids)
 
-    recs = SQL.all(scope, into: Hash)
+    recs = connection.all(scope, into: Hash)
     recs_by_id = H.by_key(recs, having_column)
 
     records.each do |model|
@@ -104,7 +104,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   end
 
   # preloads a has_one or has_many association.
-  def preload_has_one_or_many(records, relation, as:, order_by:, limit:)
+  def preload_has_one_or_many(connection, records, relation, as:, order_by:, limit:)
     # To really make sense limit must be implemented using window
     # functions, because one (or, at lieast, I) would expect this code
     #
@@ -121,7 +121,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
 
     host_ids  = H.pluck(records, having_column).uniq.compact
 
-    scope     = SQL::Scope.new(table: relation.belonging_table)
+    scope     = connection.scope(table: relation.belonging_table)
     scope     = scope.where(belonging_column => host_ids)
     scope     = scope.order_by(order_by) if order_by
 
@@ -165,9 +165,9 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
         raise ArgumentError, "#{association.inspect} is a singular association, w/o support for order_by: and limit:"
       end
 
-      preload_belongs_to records, relation, as: as
+      preload_belongs_to connection, records, relation, as: as
     else
-      preload_has_one_or_many records, relation, as: as, order_by: order_by, limit: limit
+      preload_has_one_or_many connection, records, relation, as: as, order_by: order_by, limit: limit
     end
   end
 end

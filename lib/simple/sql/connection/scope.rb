@@ -6,28 +6,37 @@ require_relative "scope/pagination.rb"
 require_relative "scope/count.rb"
 require_relative "scope/count_by_groups.rb"
 
-# The Simple::SQL::Scope class helps building scopes; i.e. objects
-# that start as a quite basic SQL query, and allow one to add
-# sql_fragments as where conditions.
-class Simple::SQL::Scope
-  SELF = self
-
-  attr_reader :args
-  attr_reader :per, :page
-
+class Simple::SQL::Connection
   # Build a scope object
   #
   # This call supports a few variants:
   #
-  #     Simple::SQL::Scope.new("SELECT * FROM mytable")
-  #     Simple::SQL::Scope.new(table: "mytable", select: "*")
+  #     Simple::SQL.scope("SELECT * FROM mytable")
+  #     Simple::SQL.scope(table: "mytable", select: "*")
   #
   # The second option also allows one to pass in more options, like the following:
   #
-  #     Simple::SQL::Scope.new(table: "mytable", select: "*", where: { id: 1, foo: "bar" }, order_by: "id desc")
+  #     Simple::SQL.scope(table: "mytable", select: "*", where: { id: 1, foo: "bar" }, order_by: "id desc")
   #
-  def initialize(sql, args = [])
+  def scope(sql, args = [])
+    ::Simple::SQL::Connection::Scope.new sql, args, connection: self
+  end
+end
+
+# The Simple::SQL::Connection::Scope class helps building scopes; i.e. objects
+# that start as a quite basic SQL query, and allow one to add
+# sql_fragments as where conditions.
+class Simple::SQL::Connection::Scope
+  SELF = self
+
+  attr_reader :connection
+  attr_reader :args
+  attr_reader :per, :page
+
+  def initialize(sql, args = [], connection:) # :nodoc:
     expect! sql => [String, Hash]
+
+    @connection = connection
 
     @sql     = nil
     @args    = args
@@ -62,7 +71,7 @@ class Simple::SQL::Scope
   end
 
   def duplicate
-    dupe = SELF.new(@sql)
+    dupe = SELF.new(@sql, connection: @connection)
     dupe.instance_variable_set :@args, @args.dup
     dupe.instance_variable_set :@filters, @filters.dup
     dupe.instance_variable_set :@per, @per

@@ -8,7 +8,6 @@ require_relative "sql/helpers"
 require_relative "sql/result"
 require_relative "sql/config"
 require_relative "sql/logging"
-require_relative "sql/scope"
 require_relative "sql/connection_adapter"
 require_relative "sql/connection"
 
@@ -22,6 +21,7 @@ module Simple
     delegate [:reflection] => :default_connection
     delegate [:duplicate] => :default_connection
     delegate [:insert] => :default_connection
+    delegate [:scope] => :default_connection
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
 

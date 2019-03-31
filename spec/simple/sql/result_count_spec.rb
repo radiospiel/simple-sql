@@ -3,7 +3,7 @@ require "spec_helper"
 describe "Simple::SQL::Result counts" do
   let!(:users)          { 1.upto(USER_COUNT).map { create(:user) } }
   let(:min_user_id)     { SQL.ask "SELECT min(id) FROM users" }
-  let(:scope)           { SQL::Scope.new("SELECT * FROM users") }
+  let(:scope)           { SQL.scope("SELECT * FROM users") }
   let(:paginated_scope) { scope.paginate(per: 1, page: 1) }
 
   describe "exact counting" do
@@ -39,7 +39,7 @@ describe "Simple::SQL::Result counts" do
 
 
   context 'when running with an empty, paginated paginated_scope' do
-    let(:scope)           { SQL::Scope.new("SELECT * FROM users WHERE FALSE") }
+    let(:scope)           { SQL.scope("SELECT * FROM users WHERE FALSE") }
     let(:paginated_scope) { scope.paginate(per: 1, page: 1) }
 
     it "returns correct results" do
