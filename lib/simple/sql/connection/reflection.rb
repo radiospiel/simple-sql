@@ -114,7 +114,7 @@ class Simple::SQL::Connection
     private
 
     def _lookup_pg_class(oid)
-      ::Simple::SQL.ask <<~SQL, oid
+      @connection.ask <<~SQL, oid
         SELECT nspname AS schema, relname AS host_table
         FROM pg_class
         JOIN pg_namespace ON pg_namespace.oid=pg_class.relnamespace
