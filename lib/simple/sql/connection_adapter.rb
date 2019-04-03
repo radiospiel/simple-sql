@@ -11,7 +11,7 @@ module Simple::SQL::ConnectionAdapter
   # arguments - since the pg client does not support this - but it allows to
   # run multiple sql statements separated by ";"
   def exec(sql)
-    Logging.with_logged_query sql do
+    Logging.with_logged_query self, sql do
       raw_connection.exec sql
     end
   end
@@ -91,7 +91,7 @@ module Simple::SQL::ConnectionAdapter
 
   # returns an Array [min_cost, max_cost] based on the database's estimation
   def costs(sql, *args)
-    explanation_first = Simple::SQL.ask "EXPLAIN #{sql}", *args
+    explanation_first = ask "EXPLAIN #{sql}", *args
     unless explanation_first =~ /cost=(\d+(\.\d+))\.+(\d+(\.\d+))/
       raise "Cannot determine cost"
     end
@@ -129,7 +129,7 @@ module Simple::SQL::ConnectionAdapter
       sql = sql_or_scope
     end
 
-    Logging.with_logged_query sql, *args do
+    Logging.with_logged_query self, sql, *args do
       raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args))
     end
   end

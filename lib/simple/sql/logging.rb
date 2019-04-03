@@ -54,7 +54,7 @@ module Simple
         @slow_query_treshold = slow_query_treshold
       end
 
-      def with_logged_query(sql, *args, &_block)
+      def with_logged_query(connection, sql, *args, &_block)
         r0 = Time.now
         rv = yield
         runtime = Time.now - r0
@@ -64,7 +64,7 @@ module Simple
         end
 
         if slow_query_treshold && runtime > slow_query_treshold
-          log_slow_query(sql, *args, runtime: runtime)
+          log_slow_query(connection, sql, *args, runtime: runtime)
         end
 
         rv
@@ -81,14 +81,14 @@ module Simple
 
       Formatting = ::Simple::SQL::Formatting
 
-      def log_slow_query(sql, *args, runtime:)
+      def log_slow_query(connection, sql, *args, runtime:)
         # Do not try to analyze an EXPLAIN query. This prevents endless recursion here
         # (and, in general, would not be useful anyways.)
         return if sql =~ /^EXPLAIN /
 
         log_multiple_lines ::Logger::WARN, prefix: "[sql-slow]" do
           formatted_query = Formatting.format(sql, *args)
-          query_plan = ::Simple::SQL.all "EXPLAIN #{sql}", *args
+          query_plan = connection.all "EXPLAIN #{sql}", *args
 
           <<~MSG
             === slow query detected: (#{'%.3f secs' % runtime}) ===================================================================================
