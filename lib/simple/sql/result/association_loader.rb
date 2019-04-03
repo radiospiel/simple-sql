@@ -125,7 +125,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     scope     = scope.where(belonging_column => host_ids)
     scope     = scope.order_by(order_by) if order_by
 
-    recs      = SQL.all(scope, into: Hash)
+    recs      = connection.all(scope, into: Hash)
 
     if as.to_s.singularize == as.to_s
       recs_by_id = H.by_key(recs, belonging_column) # has_one
