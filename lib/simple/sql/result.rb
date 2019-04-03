@@ -1,10 +1,10 @@
-# rubocop:disable Naming/AccessorMethodName
 # rubocop:disable Style/DoubleNegation
 # rubocop:disable Style/GuardClause
 
 require_relative "helpers"
 
 class ::Simple::SQL::Result < Array
+  attr_accessor :column_info
 end
 
 require_relative "result/records"
@@ -74,15 +74,13 @@ class ::Simple::SQL::Result < Array
     !!@pagination_scope
   end
 
-  private
-
   def pagination_scope
     raise "Only available only for paginated scopes" unless paginated?
 
     @pagination_scope
   end
 
-  def set_pagination_info(scope)
+  def pagination_scope=(scope)
     raise ArgumentError, "per must be > 0" unless scope.per > 0
 
     @pagination_scope = scope

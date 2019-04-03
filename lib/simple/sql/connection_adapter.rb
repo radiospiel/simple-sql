@@ -1,8 +1,12 @@
+# rubocop:disable Metrics/AbcSize
+
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
 #
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
+
+require_relative "connection/type_info"
 
 module Simple::SQL::ConnectionAdapter
   Logging = ::Simple::SQL::Logging
@@ -33,31 +37,25 @@ module Simple::SQL::ConnectionAdapter
   def all(sql, *args, into: nil, &block)
     raise ArgumentError, "all no longer support blocks, use each instead." if block
 
-    rows = []
-    my_pg_source_oid = nil
+    rows, pg_source_oid, column_info = each_without_conversion(sql, *args, into: into)
 
-    each_without_conversion(sql, *args, into: into) do |row, pg_source_oid|
-      rows << row
-      my_pg_source_oid = pg_source_oid
-    end
-
-    record_set = convert_rows_to_result rows, into: into, pg_source_oid: my_pg_source_oid
+    result = convert_rows_to_result rows, into: into, pg_source_oid: pg_source_oid
 
     # [TODO] - resolve associations. Note that this is only possible if the type
     # is not an Array (i.e. into is nil)
 
-    if sql.is_a?(::Simple::SQL::Connection::Scope) && sql.paginated?
-      record_set.send(:set_pagination_info, sql)
-    end
-
-    record_set
+    result.pagination_scope = sql if sql.is_a?(::Simple::SQL::Connection::Scope) && sql.paginated?
+    result.column_info      = column_info
+    result
   end
 
   def each(sql, *args, into: nil)
     raise ArgumentError, "Missing block" unless block_given?
 
-    each_without_conversion sql, *args, into: into do |row, pg_source_oid|
-      record = convert_row_to_record row, into: into, pg_source_oid: pg_source_oid
+    rows, pg_source_oid, _column_info = each_without_conversion sql, *args, into: into
+
+    rows.each do |row|
+      record = convert_rows_to_result([row], into: into, pg_source_oid: pg_source_oid).first
       yield record
     end
 
@@ -134,34 +132,45 @@ module Simple::SQL::ConnectionAdapter
     end
   end
 
+  # returns an array of decoded entries, if any
   def each_without_conversion(sql, *args, into: nil)
     pg_result = exec_logged(sql, *args)
 
+    column_info = collect_column_info(pg_result)
+    rows = []
+    pg_source_oid = nil
+
     if pg_result.ntuples > 0 && pg_result.nfields > 0
-      decoder = Decoder.new(self, pg_result, into: (into ? Hash : nil))
+      decoder = Decoder.new(pg_result, into: (into ? Hash : nil), column_info: column_info)
       pg_source_oid = pg_result.ftable(0)
 
       pg_result.each_row do |row|
-        yield decoder.decode(row), pg_source_oid
+        rows << decoder.decode(row)
       end
     end
 
+    [rows, pg_source_oid, column_info]
+  ensure
     # optimization: If we wouldn't clear here the GC would do this later.
-    pg_result.clear unless pg_result.autoclear?
+    pg_result.clear if pg_result && !pg_result.autoclear?
   end
 
-  def convert_row_to_record(row, into:, pg_source_oid:)
-    convert_rows_to_result([row], into: into, pg_source_oid: pg_source_oid).first
+  def collect_column_info(pg_result)
+    return unless pg_result.nfields > 0
+
+    (0...pg_result.nfields).map do |idx|
+      ftype = pg_result.ftype(idx)
+      fmod = pg_result.fmod(idx)
+
+      {
+        name: pg_result.fname(idx).to_sym,
+        pg_type_name: type_info.pg_type_name(ftype: ftype, fmod: fmod),
+        type_name: type_info.type_name(ftype: ftype, fmod: fmod)
+      }
+    end
   end
 
   def convert_rows_to_result(rows, into:, pg_source_oid:)
     Result.build(self, rows, target_type: into, pg_source_oid: pg_source_oid)
-  end
-
-  public
-
-  def resolve_type(ftype, fmod)
-    @resolved_types ||= {}
-    @resolved_types[[ftype, fmod]] ||= raw_connection.exec("SELECT format_type($1,$2)", [ftype, fmod]).getvalue(0, 0)
   end
 end
