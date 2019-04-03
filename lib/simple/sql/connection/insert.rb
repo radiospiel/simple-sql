@@ -63,9 +63,9 @@ class Simple::SQL::Connection
     end
 
     def insert(records:)
-      SQL.transaction do
+      @connection.transaction do
         records.map do |record|
-          SQL.ask @sql, *record.values_at(*@columns), into: @into
+          @connection.ask @sql, *record.values_at(*@columns), into: @into
         end
       end
     end
