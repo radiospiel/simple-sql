@@ -8,7 +8,7 @@
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
 
-module Simple::SQL::ConnectionAdapter
+class Simple::SQL::Connection
   def type_info
     @type_info ||= TypeInfo.new(self)
   end

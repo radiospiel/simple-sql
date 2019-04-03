@@ -6,9 +6,7 @@
 # This module can be mixed onto objects that implement a raw_connection
 # method, which must return a Pg::Connection.
 
-require_relative "connection/type_info"
-
-module Simple::SQL::ConnectionAdapter
+class Simple::SQL::Connection
   Logging = ::Simple::SQL::Logging
 
   # execute one or more sql statements. This method does not allow to pass in

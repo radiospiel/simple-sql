@@ -8,7 +8,6 @@ require_relative "sql/helpers"
 require_relative "sql/result"
 require_relative "sql/config"
 require_relative "sql/logging"
-require_relative "sql/connection_adapter"
 require_relative "sql/connection"
 
 module Simple

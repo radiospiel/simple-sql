@@ -4,10 +4,12 @@ end
 require_relative "connection/raw_connection"
 require_relative "connection/active_record_connection"
 
+require_relative "connection/base"
 require_relative "connection/scope"
 require_relative "connection/reflection"
 require_relative "connection/insert"
 require_relative "connection/duplicate"
+require_relative "connection/type_info"
 
 # A Connection object.
 #
@@ -31,8 +33,6 @@ class Simple::SQL::Connection
       RawConnection.new database_url
     end
   end
-
-  include Simple::SQL::ConnectionAdapter
 
   extend Forwardable
   delegate [:wait_for_notify] => :raw_connection
