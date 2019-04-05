@@ -31,7 +31,7 @@ module Simple
 
       return "NULL" unless s
 
-      "'#{PG::Connection.escape_string(s)}'"
+      "'#{PG::Connection.escape_string(s.to_s)}'"
     end
 
     # connects to the database specified via the url parameter. If called

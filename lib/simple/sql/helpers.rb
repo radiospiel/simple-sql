@@ -21,9 +21,12 @@ module ::Simple::SQL::Helpers
     ary.map { |rec| rec.fetch(key) }
   end
 
+  # groups an array of Hashes by the entry with a given key. The key entry must
+  # exist in all records. If a group appears more than once in the incoming data,
+  # the first entry wins.
   def by_key(ary, key)
     hsh = {}
-    ary.each do |entity|
+    ary.reverse_each do |entity|
       group = entity.fetch(key)
       hsh[group] = entity
     end
