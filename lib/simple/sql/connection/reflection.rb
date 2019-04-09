@@ -1,4 +1,4 @@
-# rubocop_disable Metrics/ClassLength
+# rubocop:disable Metrics/ClassLength
 
 class Simple::SQL::Connection
   def reset_reflection
