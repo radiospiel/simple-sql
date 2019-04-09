@@ -11,4 +11,4 @@ ENV["PGPORT"]     = config["port"] && config["port"].to_s
 ENV["PGUSER"]     = config["username"]
 ENV["PGPASSWORD"] = config["password"]
 
-system "psql", "-d", config.fetch("database"), *ARGV
+system "pg_restore", "-d", config.fetch("database"), *ARGV

@@ -1,3 +1,5 @@
+# rubocop_disable Metrics/ClassLength
+
 class Simple::SQL::Connection
   def reset_reflection
     @reflection = nil
@@ -16,15 +18,38 @@ class Simple::SQL::Connection
       table_info(schema: schema).keys
     end
 
+    def primary_key_column(table_name)
+      @primary_key_column ||= {}
+      @primary_key_column[table_name] ||= begin
+        pk_column, other = primary_key_columns(table_name)
+
+        raise "#{table_name}: No support for combined primary keys" if other
+        raise "#{table_name}: No primary key" if pk_column.nil?
+
+        pk_column
+      end
+    end
+
     def primary_key_columns(table_name)
-      @connection.all <<~SQL, table_name
+      @primary_key_columns ||= {}
+      @primary_key_columns[table_name] ||= _primary_key_columns(table_name)
+    end
+
+    private
+
+    def _primary_key_columns(table_name)
+      sql = <<~SQL
         SELECT pg_attribute.attname
         FROM   pg_index
         JOIN   pg_attribute ON pg_attribute.attrelid = pg_index.indrelid AND pg_attribute.attnum = ANY(pg_index.indkey)
         WHERE  pg_index.indrelid = $1::regclass
         AND    pg_index.indisprimary;
       SQL
+
+      @connection.all(sql, table_name)
     end
+
+    public
 
     TIMESTAMP_COLUMN_NAMES = %w(inserted_at created_at updated_at)
 
