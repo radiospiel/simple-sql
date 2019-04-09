@@ -1,3 +1,5 @@
+# rubocop:disable Naming/UncommunicativeMethodParamName
+
 require "forwardable"
 require "logger"
 require "expectation"
@@ -23,6 +25,14 @@ module Simple
     delegate [:scope] => :default_connection
 
     delegate [:logger, :logger=] => ::Simple::SQL::Logging
+
+    def escape_string(s)
+      expect! s => [Symbol, String, nil]
+
+      return "NULL" unless s
+
+      "'#{PG::Connection.escape_string(s)}'"
+    end
 
     # connects to the database specified via the url parameter. If called
     # without argument it tries to determine a DATABASE_URL from either the
