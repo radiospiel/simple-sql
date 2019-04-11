@@ -18,12 +18,12 @@ describe "Simple::SQL::Connection::Scope#count" do
 
   describe "fast count" do
     it "counts" do
-      expect(scope.fast_count).to eq(USER_COUNT)
+      expect(scope.count_estimate).to eq(USER_COUNT)
     end
 
     it "evaluates conditions" do
-      expect(scope.where("id < $1", min_user_id).fast_count).to eq(0)
-      expect(scope.where("id <= $1", min_user_id).fast_count).to eq(1)
+      expect(scope.where("id < $1", min_user_id).count_estimate).to eq(0)
+      expect(scope.where("id <= $1", min_user_id).count_estimate).to eq(1)
     end
   end
 end

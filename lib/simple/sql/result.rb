@@ -38,15 +38,8 @@ class ::Simple::SQL::Result < Array
   # returns the (potentialy estimated) total count of results
   #
   # This is only available for paginated scopes
-  def total_fast_count
-    @total_fast_count ||= pagination_scope.fast_count
-  end
-
-  # returns the (potentialy estimated) total number of pages
-  #
-  # This is only available for paginated scopes
-  def total_fast_pages
-    @total_fast_pages ||= (total_fast_count * 1.0 / pagination_scope.per).ceil
+  def total_count_estimate
+    @total_count_estimate ||= pagination_scope.count_estimate
   end
 
   # returns the (potentialy slow) exact total count of results
@@ -54,13 +47,6 @@ class ::Simple::SQL::Result < Array
   # This is only available for paginated scopes
   def total_count
     @total_count ||= pagination_scope.count
-  end
-
-  # returns the (potentialy estimated) total number of pages
-  #
-  # This is only available for paginated scopes
-  def total_pages
-    @total_pages ||= (total_count * 1.0 / pagination_scope.per).ceil
   end
 
   # returns the current page number in a paginated search
@@ -91,9 +77,7 @@ class ::Simple::SQL::Result < Array
     if scope.page <= 1 && empty?
       @current_page = 1
       @total_count  = 0
-      @total_pages  = 1
-      @total_fast_count  = 0
-      @total_fast_pages  = 1
+      @total_count_estimate = 0
     end
   end
 end

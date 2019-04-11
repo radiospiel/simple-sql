@@ -11,7 +11,7 @@ class Simple::SQL::Connection::Scope
   # Returns the fast count of matching records
   #
   # For counts larger than EXACT_COUNT_THRESHOLD this returns an estimate
-  def fast_count
+  def count_estimate
     estimate = estimated_count
     return estimate if estimate > EXACT_COUNT_THRESHOLD
 

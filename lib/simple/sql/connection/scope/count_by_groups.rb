@@ -42,7 +42,7 @@ class Simple::SQL::Connection::Scope
     Hash[recs]
   end
 
-  def fast_count_by(sql_fragment)
+  def count_by_estimate(sql_fragment)
     sql = order_by(nil).to_sql(pagination: false)
 
     _, max_cost = @connection.costs "SELECT COUNT(*) FROM (#{sql}) sq GROUP BY #{sql_fragment}", *args
@@ -58,7 +58,8 @@ class Simple::SQL::Connection::Scope
     sparse_groups = []
     enumerate_groups(sql_fragment).each do |group|
       scope = @connection.scope("SELECT * FROM (#{sql}) sq WHERE #{sql_fragment}=#{var_name}", *args, group)
-      counts[group] = scope.send(:estimated_count)
+      estimated_count = scope.send(:estimated_count)
+      counts[group] = estimated_count
       sparse_groups << group if estimated_count < EXACT_COUNT_THRESHOLD
     end
 

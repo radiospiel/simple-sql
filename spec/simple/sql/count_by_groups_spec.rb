@@ -24,7 +24,7 @@ describe "Simple::SQL::Connection::Scope#count_by" do
     end
   end
 
-  describe "fast_count_by" do
+  describe "count_by_estimate" do
     before do
       # 10_000 is chosen "magically". It is large enough to switch to the fast algorithm,
       # but 
@@ -36,9 +36,9 @@ describe "Simple::SQL::Connection::Scope#count_by" do
       create(:user, role_id: 1)
       create(:user, role_id: 1)
 
-      expect(scope.fast_count_by("role_id")).to include(1 => 4)
-      expect(scope.fast_count_by("role_id")).to include(2 => 1)
-      expect(scope.fast_count_by("role_id").keys).to contain_exactly(*all_role_ids)
+      expect(scope.count_by_estimate("role_id")).to include(1 => 4)
+      expect(scope.count_by_estimate("role_id")).to include(2 => 1)
+      expect(scope.count_by_estimate("role_id").keys).to contain_exactly(*all_role_ids)
     end
   end
 end

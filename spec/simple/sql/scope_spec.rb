@@ -235,7 +235,6 @@ describe "Simple::SQL::Connection::Scope" do
         result = SQL.all(scope.paginate(per: 1, page: 1))
 
         expect(result).to eq([[1, 2]])
-        expect(result.total_pages).to eq(2)
         expect(result.current_page).to eq(1)
         expect(result.total_count).to eq(2)
       end
@@ -246,7 +245,6 @@ describe "Simple::SQL::Connection::Scope" do
         result = SQL.all(scope.paginate(per: 2, page: 2))
 
         expect(result).to eq([])
-        expect(result.total_pages).to eq(1)
         expect(result.current_page).to eq(2)
         expect(result.total_count).to eq(2)
       end
@@ -255,7 +253,6 @@ describe "Simple::SQL::Connection::Scope" do
         result = SQL.all(scope.paginate(per: 2, page: 1))
 
         expect(result).to eq([[1, 2], [1, 2]])
-        expect(result.total_pages).to eq(1)
         expect(result.current_page).to eq(1)
         expect(result.total_count).to eq(2)
       end

@@ -10,7 +10,6 @@ describe "Simple::SQL::Result counts" do
     it "counts" do
       result = SQL.all(paginated_scope)
       expect(result.total_count).to eq(USER_COUNT)
-      expect(result.total_pages).to eq(USER_COUNT)
       expect(result.current_page).to eq(1)
     end
   end
@@ -19,8 +18,7 @@ describe "Simple::SQL::Result counts" do
     it "counts fast" do
       result = SQL.all(paginated_scope)
 
-      expect(result.total_fast_count).to eq(USER_COUNT)
-      expect(result.total_fast_pages).to eq(USER_COUNT)
+      expect(result.total_count_estimate).to eq(USER_COUNT)
       expect(result.current_page).to eq(1)
     end
   end
@@ -30,10 +28,8 @@ describe "Simple::SQL::Result counts" do
       result = SQL.all(scope)
 
       expect { result.total_count }.to raise_error(RuntimeError)
-      expect { result.total_pages }.to raise_error(RuntimeError)
       expect { result.current_page }.to raise_error(RuntimeError)
-      expect { result.total_fast_count }.to raise_error(RuntimeError)
-      expect { result.total_fast_pages }.to raise_error(RuntimeError)
+      expect { result.total_count_estimate }.to raise_error(RuntimeError)
     end
   end
 
@@ -46,11 +42,7 @@ describe "Simple::SQL::Result counts" do
       result = SQL.all(paginated_scope)
 
       expect(result.total_count).to eq(0)
-      expect(result.total_pages).to eq(1)
-
-      expect(result.total_fast_count).to eq(0)
-      expect(result.total_fast_pages).to eq(1)
-
+      expect(result.total_count_estimate).to eq(0)
       expect(result.current_page).to eq(1)
     end
   end
