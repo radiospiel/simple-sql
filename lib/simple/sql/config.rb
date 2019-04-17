@@ -7,6 +7,22 @@
 module Simple::SQL::Config
   extend self
 
+  def set_environment!(env_name = nil)
+    env_name ||= ENV["POSTJOB_ENV"] || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+
+    require "yaml"
+    configs = YAML.load_file "config/database.yml"
+    config = configs.fetch(env_name) { configs.fetch("defaults") }
+
+    Simple::SQL.logger.info "Read database config #{config.inspect}"
+
+    ENV["PGHOST"]     = config["host"]
+    ENV["PGPORT"]     = config["port"] && config["port"].to_s
+    ENV["PGUSER"]     = config["username"]
+    ENV["PGPASSWORD"] = config["password"]
+    ENV["PGDATABASE"] = config["database"]
+  end
+
   # parse a DATABASE_URL, return PG::Connection settings.
   def parse_url(url)
     expect! url => /^postgres(ql)?s?:\/\//

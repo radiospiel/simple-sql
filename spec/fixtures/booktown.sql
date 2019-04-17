@@ -1,3 +1,5 @@
+DROP SCHEMA IF EXISTS booktown CASCADE;
+
 --
 -- PostgreSQL database dump
 --
