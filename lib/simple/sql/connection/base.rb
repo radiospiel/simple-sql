@@ -86,13 +86,9 @@ class Simple::SQL::Connection
   end
 
   # returns an Array [min_cost, max_cost] based on the database's estimation
-  def estimate_costs(sql, *args)
-    explanation_first = ask "EXPLAIN #{sql}", *args
-    unless explanation_first =~ /cost=(\d+(\.\d+))\.+(\d+(\.\d+))/
-      raise "Cannot determine cost"
-    end
-
-    [Float($1), Float($3)]
+  def estimate_cost(sql, *args)
+    explanation = ask "EXPLAIN (FORMAT JSON) #{sql}", *args
+    explanation.first.dig "Plan", "Total Cost"
   end
 
   # Executes a block, usually of db insert code, while holding an

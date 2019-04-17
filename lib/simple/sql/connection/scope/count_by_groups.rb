@@ -20,8 +20,8 @@ class Simple::SQL::Connection::Scope
   def enumerate_groups(sql_fragment)
     sql = order_by(nil).to_sql(pagination: false)
 
-    _, max_cost = @connection.estimate_costs "SELECT MIN(#{sql_fragment}) FROM (#{sql}) sq", *args
-    raise "enumerate_groups(#{sql_fragment.inspect}) takes too much time. Make sure to create a suitable index" if max_cost > 10_000
+    cost = @connection.estimate_cost "SELECT MIN(#{sql_fragment}) FROM (#{sql}) sq", *args
+    raise "enumerate_groups(#{sql_fragment.inspect}) takes too much time. Make sure to create a suitable index" if cost > 10_000
 
     groups = []
     var_name = "$#{@args.count + 1}"
@@ -45,9 +45,9 @@ class Simple::SQL::Connection::Scope
   def count_by_estimate(sql_fragment)
     sql = order_by(nil).to_sql(pagination: false)
 
-    _, max_cost = @connection.estimate_costs "SELECT COUNT(*) FROM (#{sql}) sq GROUP BY #{sql_fragment}", *args
+    cost = @connection.estimate_cost "SELECT COUNT(*) FROM (#{sql}) sq GROUP BY #{sql_fragment}", *args
 
-    return count_by(sql_fragment) if max_cost < 10_000
+    return count_by(sql_fragment) if cost < 10_000
 
     # iterate over all groups, estimating the count for each. If the count is
     # less than EXACT_COUNT_THRESHOLD we ask for the exact count in that and
