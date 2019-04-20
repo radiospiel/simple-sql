@@ -21,8 +21,8 @@ module Simple::SQL::Helpers::Decoder
     when :"timestamp without time zone" then ::Time.parse(s)
     when :"timestamp with time zone"    then ::Time.parse(s)
     when :hstore                        then HStore.parse(s)
-    when :json                          then ::JSON.parse(s)
-    when :jsonb                         then ::JSON.parse(s)
+    when :json                          then ::Simple::SQL::JSON.parse(s)
+    when :jsonb                         then ::Simple::SQL::JSON.parse(s)
     when :boolean                       then s == "t"
     else
       # unknown value, we just return the string here.
