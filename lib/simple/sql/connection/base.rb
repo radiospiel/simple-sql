@@ -124,6 +124,8 @@ class Simple::SQL::Connection
     Logging.with_logged_query self, sql, *args do
       raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args))
     end
+  rescue PG::InvalidTextRepresentation
+    raise ArgumentError, $!.to_s
   end
 
   # returns an array of decoded entries, if any
