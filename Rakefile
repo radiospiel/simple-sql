@@ -21,5 +21,6 @@ end
 task default: "test:prepare_db" do
   sh "rspec"
   sh "USE_ACTIVE_RECORD=1 rspec"
+  sh "LAZY_JSON=1 rspec"
   sh "rubocop -D"
 end

@@ -1,6 +1,7 @@
 module ::Simple::SQL::Helpers
 end
 
+require_relative "./json.rb"
 require_relative "helpers/decoder.rb"
 require_relative "helpers/encoder.rb"
 require_relative "helpers/row_converter.rb"

@@ -13,6 +13,10 @@ Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/sql"
 
+if ENV["LAZY_JSON"]
+  Simple::SQL::JSON.lazy!
+end
+
 unless ENV["USE_ACTIVE_RECORD"]
   database_url = Simple::SQL::Config.determine_url
 
