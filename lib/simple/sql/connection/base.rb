@@ -90,19 +90,6 @@ class Simple::SQL::Connection
     explanation.first.dig "Plan", "Total Cost"
   end
 
-  # Executes a block, usually of db insert code, while holding an
-  # advisory lock.
-  #
-  # Examples:
-  #
-  # - <tt>Simple::SQL.locked(4711) { puts 'do work while locked' }
-  def locked(lock_id)
-    ask("SELECT pg_advisory_lock(#{lock_id})")
-    yield
-  ensure
-    ask("SELECT pg_advisory_unlock(#{lock_id})")
-  end
-
   private
 
   Result = ::Simple::SQL::Result

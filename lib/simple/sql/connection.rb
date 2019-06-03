@@ -5,6 +5,7 @@ require_relative "connection/raw_connection"
 require_relative "connection/active_record_connection"
 
 require_relative "connection/base"
+require_relative "connection/lock"
 require_relative "connection/scope"
 require_relative "connection/reflection"
 require_relative "connection/insert"

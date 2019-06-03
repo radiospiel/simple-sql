@@ -31,6 +31,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'pg', '~> 0.20'
   gem.add_dependency 'expectation', '~> 1'
 
+  gem.add_dependency 'digest-crc', '~> 0'
+
   # optional gems (required by some of the parts)
 
   # development gems
