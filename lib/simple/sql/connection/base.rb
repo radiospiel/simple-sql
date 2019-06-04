@@ -64,9 +64,8 @@ class Simple::SQL::Connection
   def print(sql, *args, into: nil)
     raise ArgumentError, "You cannot call Simple::SQL.print with into: #{into.inspect}" unless into.nil?
 
-    require "table_print"
     records = all sql, *args, into: Hash
-    tp records
+    Simple::SQL::Helpers::Printer.print records
     records
   end
 
@@ -89,19 +88,6 @@ class Simple::SQL::Connection
   def estimate_cost(sql, *args)
     explanation = ask "EXPLAIN (FORMAT JSON) #{sql}", *args
     explanation.first.dig "Plan", "Total Cost"
-  end
-
-  # Executes a block, usually of db insert code, while holding an
-  # advisory lock.
-  #
-  # Examples:
-  #
-  # - <tt>Simple::SQL.locked(4711) { puts 'do work while locked' }
-  def locked(lock_id)
-    ask("SELECT pg_advisory_lock(#{lock_id})")
-    yield
-  ensure
-    ask("SELECT pg_advisory_unlock(#{lock_id})")
   end
 
   private

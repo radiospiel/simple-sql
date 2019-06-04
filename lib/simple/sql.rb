@@ -18,7 +18,7 @@ module Simple
     extend self
 
     extend Forwardable
-    delegate [:ask, :all, :each, :exec, :locked, :print, :transaction, :wait_for_notify, :estimate_cost] => :default_connection
+    delegate [:ask, :all, :each, :exec, :locked, :lock!, :print, :transaction, :wait_for_notify, :estimate_cost] => :default_connection
     delegate [:reflection] => :default_connection
     delegate [:duplicate] => :default_connection
     delegate [:insert] => :default_connection
