@@ -50,12 +50,12 @@ class Simple::SQL::Connection
       key = -key # make it negative
     end
 
-    # cut key, key2 to the allowed number of bits
+    # shorten key, key2 to the allowed number of bits
     if key2
-      key &= 0xffffffff
-      key2 &= 0xffffffff
+      key  = apply_bitmask(key, MASK_31_BITS)
+      key2 = apply_bitmask(key2, MASK_31_BITS)
     else
-      key &= 0xffffffffffffffff
+      key  = apply_bitmask(key, MASK_63_BITS)
     end
 
     if timeout
@@ -67,6 +67,18 @@ class Simple::SQL::Connection
 
   private
 
+  MASK_31_BITS = 0x7fffffff
+  MASK_63_BITS = 0x7fffffffffffffff
+
+  # rubocop:disable Naming/UncommunicativeMethodParamName
+  def apply_bitmask(n, mask)
+    if n < 0
+      -((-n) & mask)
+    else
+      n & mask
+    end
+  end
+
   def lock_wo_timeout(key, key2)
     ask("SET LOCAL lock_timeout TO DEFAULT")
 
@@ -77,6 +89,7 @@ class Simple::SQL::Connection
     end
   end
 
+  # rubocop:disable Style/IfInsideElse
   def lock_w_timeout(key, key2, timeout)
     expect! timeout => 0..3600
 
