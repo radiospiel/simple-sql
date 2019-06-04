@@ -50,6 +50,14 @@ class Simple::SQL::Connection
       key = -key # make it negative
     end
 
+    # cut key, key2 to the allowed number of bits
+    if key2
+      key &= 0xffffffff
+      key2 &= 0xffffffff
+    else
+      key &= 0xffffffffffffffff
+    end
+
     if timeout
       lock_w_timeout(key, key2, timeout)
     else
