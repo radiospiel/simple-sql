@@ -76,3 +76,5 @@ Style/PerlBackrefs:
 Style/TrailingUnderscoreVariable:
   Enabled: false
   
+Style/StderrPuts:
+  Enabled: false
