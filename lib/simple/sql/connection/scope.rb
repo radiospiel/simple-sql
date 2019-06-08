@@ -1,10 +1,11 @@
 # rubocop:disable Style/MultipleComparison
 
-require_relative "scope/filters.rb"
-require_relative "scope/order.rb"
-require_relative "scope/pagination.rb"
-require_relative "scope/count.rb"
-require_relative "scope/count_by_groups.rb"
+require_relative "scope/shorthand"
+require_relative "scope/filters"
+require_relative "scope/order"
+require_relative "scope/pagination"
+require_relative "scope/count"
+require_relative "scope/count_by_groups"
 
 class Simple::SQL::Connection
   # Build a scope object
