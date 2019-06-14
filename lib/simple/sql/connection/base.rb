@@ -64,8 +64,13 @@ class Simple::SQL::Connection
   def print(sql, *args, into: nil)
     raise ArgumentError, "You cannot call Simple::SQL.print with into: #{into.inspect}" unless into.nil?
 
-    records = all sql, *args, into: Hash
-    Simple::SQL::Helpers::Printer.print records
+    if sql.is_a?(Array) && args.empty?
+      records = sql
+    else
+      records = all sql, *args, into: Hash
+    end
+
+    Simple::SQL::Helpers::Printer.print(records)
     records
   end
 
