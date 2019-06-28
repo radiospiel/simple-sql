@@ -1,7 +1,6 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/CyclomaticComplexity
 # rubocop:disable Metrics/PerceivedComplexity
-# rubocop:disable Layout/AlignHash
 
 # module to determine database configuration
 module Simple::SQL::Config
