@@ -44,6 +44,14 @@ module Simple
       Connection.create(database_url)
     end
 
+    def with_connection(database_url = :auto)
+      connection = connect(database_url)
+
+      yield(connection) if connection
+    ensure
+      connection&.disconnect!
+    end
+
     # deprecated
     def configuration
       Config.parse_url(Config.determine_url)

@@ -33,15 +33,15 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'digest-crc', '~> 0'
 
+  gem.add_dependency 'activerecord', '~> 4'
+
   # optional gems (required by some of the parts)
 
   # development gems
-  gem.add_development_dependency 'activerecord', '~> 4'
   gem.add_development_dependency 'pg', '0.20'
   gem.add_development_dependency 'rake', '~> 11'
   gem.add_development_dependency 'rspec', '~> 3.7'
   gem.add_development_dependency 'rubocop', '~> 0.61.1'
-  gem.add_development_dependency 'database_cleaner', '~> 1'
   gem.add_development_dependency 'simplecov', '~> 0'
 
   gem.add_development_dependency 'memory_profiler', '~> 0.9.12'
