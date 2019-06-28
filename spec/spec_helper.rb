@@ -8,17 +8,10 @@ ENV["RAILS_ENV"] = "test"
 
 require "byebug"
 require "rspec"
-require "awesome_print"
+
 Dir.glob("./spec/support/**/*.rb").sort.each { |path| load path }
 
 require "simple/sql"
-
-unless ENV["USE_ACTIVE_RECORD"]
-  database_url = Simple::SQL::Config.determine_url
-
-  Simple::SQL.connect! database_url
-  Simple::SQL.ask "DELETE FROM users"
-end
 
 SQL = Simple::SQL
 USER_COUNT = 2

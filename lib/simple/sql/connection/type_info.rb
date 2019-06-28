@@ -1,5 +1,4 @@
 # rubocop:disable Style/SymbolLiteral
-# rubocop:disable Layout/AlignHash
 # rubocop:disable Style/HashSyntax
 
 # This module implements an adapter between the Simple::SQL interface

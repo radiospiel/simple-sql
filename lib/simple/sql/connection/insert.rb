@@ -1,6 +1,5 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/LineLength
-# rubocop:disable Layout/AlignHash
 
 class Simple::SQL::Connection
   #
