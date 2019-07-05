@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+# rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
 # private
 module Simple::SQL::Helpers::Printer
@@ -6,29 +6,41 @@ module Simple::SQL::Helpers::Printer
 
   ROW_SEPARATOR = " | "
 
-  def self.print(records, io: STDOUT, width: :auto)
+  def print(records, io: STDOUT, width: :auto)
     # check args
 
     return if records.empty?
-    return if records.first.keys.empty?
 
-    if width == :auto && io.isatty
-      width = `tput cols`.to_i
-    end
+    column_count = records.first.length
+    return if column_count == 0
+
+    # -- determine/adjust total width for output. -----------------------------
+
+    width = terminal_width(io) if width == :auto
     width = nil if width && width <= 0
 
-    # prepare printing
+    # -- prepare printing -----------------------------------------------------
 
     rows = materialize_rows(records)
-    column_widths = calculate_column_widths(rows)
-    column_widths = optimize_column_widths(column_widths, width, rows.first.length) if width
+    column_widths = column_max_lengths(rows)
+    if width
+      column_widths = distribute_column_widths(column_widths, width, column_count, rows.first)
+    end
 
-    # print
+    # -- print ----------------------------------------------------------------
 
     print_records(rows, io, column_widths)
   end
 
   private
+
+  def terminal_width(io)
+    return unless io.isatty
+
+    `tput cols`.to_i
+  rescue Errno::ENOENT
+    nil
+  end
 
   def materialize_rows(records)
     keys = records.first.keys
@@ -41,31 +53,75 @@ module Simple::SQL::Helpers::Printer
     rows
   end
 
-  def calculate_column_widths(rows)
+  def column_max_lengths(rows)
     rows.inject([0] * rows.first.length) do |ary, row|
       ary.zip(row.map(&:length)).map(&:max)
     end
   end
 
-  def optimize_column_widths(column_widths, width, column_count)
-    required_width = column_widths.sum + column_count * ROW_SEPARATOR.length
-    overflow = required_width - width
-    return column_widths if overflow <= 0
+  MIN_COLUMN_WIDTH = 7
 
-    # TODO: Use d'hondt with a minimum percentage for a fairer distribution
-    # The following is just a quick hack...
-    overflow += 40
+  def distribute_column_widths(column_widths, total_chars, column_count, title_row)
+    # caluclate available width: this is the number of characters available in
+    # total, reduced by the characters "wasted" for row separators.
+    available_chars = total_chars - (column_count - 1) * ROW_SEPARATOR.length
 
-    column_widths.map do |col_width|
-      (col_width - overflow * col_width * 1.0 / required_width).to_i
+    return column_widths if available_chars <= 0
+
+    # [TODO] The algorithm below produces ok-ish results - but usually misses a few characters
+    # that could still be assigned a column. To do this we shuld emply D'Hondt or something
+    # similar.
+
+    # -- initial setup --------------------------------------------------------
+    #
+    # We guarantee each column a minimum number of characters of MIN_COLUMN_WIDTH.
+    # If the column does not need that many characters, it will only be allocated
+    # the number of characters that are really necessary.
+    #
+    # If necessary we then extend a column to fit its title.
+
+    result = [MIN_COLUMN_WIDTH] * column_count
+    result = result.zip(column_widths).map(&:min)
+    result = result.zip(title_row).map { |r, title| [r, title.length].max }
+
+    # -- return if there are no more characters available ---------------------
+
+    # This happens if the terminal is **way** to narrow.
+    return column_widths if result.sum > available_chars
+
+    # -- distribute unassigned characters -------------------------------------
+
+    unassigned_widths = column_widths.zip(result).sum { |cw, r| cw - r }
+    if unassigned_widths > 0
+      available_space = available_chars - result.sum
+      if available_space > 0
+
+        result = result.zip(column_widths).map do |r, cw|
+          r + (cw - r) * available_space / unassigned_widths
+        end
+      end
+    end
+
+    # [TODO] We can still have available characters at this point.
+    # unassigned_chars = available_chars - result.sum
+
+    result
+  end
+
+  def format_value(value, width)
+    if value.length < width
+      "%-#{width}s" % value
+    elsif value.length == width
+      value
+    else
+      value[0, width - 1] + "…"
     end
   end
 
   def print_records(rows, io, column_widths)
     rows.each_with_index do |row, idx|
       parts = row.zip(column_widths).map do |value, col_width|
-        s = "%-#{col_width}s " % value
-        s[0..col_width]
+        format_value value, col_width
       end
 
       io.puts parts.join(ROW_SEPARATOR)
