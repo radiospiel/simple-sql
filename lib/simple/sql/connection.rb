@@ -2,15 +2,6 @@ class Simple::SQL::Connection
 end
 
 require "pg"
-
-# pg 0.21 prints deprecation warnings when using its definitions of PGconn,
-# PGError, and PGResult. The below blocks circumvents this - and we are doing this
-unless defined?(PGconn)
-  PGconn = PG::Connection
-  PGError = PG::Error
-  PGResult = PG::Result
-end
-
 require "active_record"
 
 require_relative "connection/base"
