@@ -24,12 +24,7 @@ module Simple
 
       def default_logger
         # return the ActiveRecord logger, if it exists.
-        if defined?(ActiveRecord)
-          logger = ActiveRecord::Base.logger
-          return logger if logger
-        end
-
-        stderr_logger
+        ::ActiveRecord::Base.logger || stderr_logger
       end
 
       def stderr_logger
