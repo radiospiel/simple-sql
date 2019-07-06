@@ -14,7 +14,6 @@ describe "Simple::SQL.connect" do
     it 'is reusing the existing ActiveRecord connection' do
       Simple::SQL.with_connection(*params) do |db|
         expect(default_pg_backend_pid).to eq(db.ask("SELECT pg_backend_pid()"))
-        expect(db).not_to be_a(Simple::SQL::Connection::ExplicitConnection)
       end
 
       expect(::Simple::SQL.ask("SELECT sum(numbackends) FROM pg_stat_database")).to eq(1)
@@ -38,7 +37,6 @@ describe "Simple::SQL.connect" do
     it 'is reusing the existing ActiveRecord connection' do
       Simple::SQL.with_connection(*params) do |db|
         expect(default_pg_backend_pid).to eq(db.ask("SELECT pg_backend_pid()"))
-        expect(db).not_to be_a(Simple::SQL::Connection::ExplicitConnection)
       end
     end
 
@@ -55,12 +53,11 @@ describe "Simple::SQL.connect" do
   end
 
   context 'with an explicit URL' do
-    let(:params) { [Simple::SQL::Config.determine_url] }
+    let(:params) { [Simple::SQL::Config.determine_url + "?dummy"] }
 
     it 'is reconnecting using the passed in URL' do
       Simple::SQL.with_connection(*params) do |db|
-        expect(default_pg_backend_pid).not_to eq(db.ask("SELECT pg_backend_pid()"))
-        expect(db).to be_a(Simple::SQL::Connection::ExplicitConnection)
+        expect(default_pg_backend_pid).to eq(db.ask("SELECT pg_backend_pid()"))
       end
     end
 
