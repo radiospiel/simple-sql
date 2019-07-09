@@ -6,15 +6,25 @@
 #
 # Note that connections to the same database are always shared within a single
 # ConnectionPool.
-module Simple::SQL::ConnectionManager
+module Simple::SQL
+  module ConnectionManager
     extend self
 
+    def disconnect_all!
+      ActiveRecord::Base.connection_pool.disconnect!
+      connection_classes.values.map(&:connection_pool).each(&:disconnect!)
+      connection_classes.clear
+    end
+
     def connection_class(url)
-      @connection_classes ||= {}
-      @connection_classes[url] ||= create_connection_class(url)
+      connection_classes[url] ||= create_connection_class(url)
     end
 
     private
+
+    def connection_classes
+      @connection_classes ||= {}
+    end
 
     # ActiveRecord needs a class name in order to connect.
     module WritableClassName
@@ -37,3 +47,4 @@ module Simple::SQL::ConnectionManager
       end
     end
   end
+end

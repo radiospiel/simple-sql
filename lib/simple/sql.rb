@@ -75,7 +75,7 @@ module Simple
 
     # disconnects the current default connection.
     def disconnect!
-      @default_connection&.disconnect!
+      ::Simple::SQL::ConnectionManager.disconnect_all!
       @default_connection = nil
     end
   end
