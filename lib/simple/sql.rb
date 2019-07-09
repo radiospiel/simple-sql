@@ -59,11 +59,9 @@ module Simple
 
     # -- default connection ---------------------------------------------------
 
-    DEFAULT_CONNECTION_KEY = :"Simple::SQL.default_connection"
-
     # returns the default connection.
     def default_connection
-      Thread.current[DEFAULT_CONNECTION_KEY] ||= connect(:auto)
+      @default_connection ||= connect(:auto)
     end
 
     # connects to the database specified via the url parameter, and sets
@@ -72,16 +70,13 @@ module Simple
     # \see connect, default_connection
     def connect!(database_url = :auto)
       disconnect!
-      Thread.current[DEFAULT_CONNECTION_KEY] ||= connect(database_url)
+      @default_connection = connect(database_url)
     end
 
     # disconnects the current default connection.
     def disconnect!
-      connection = Thread.current[DEFAULT_CONNECTION_KEY]
-      return unless connection
-
-      connection.disconnect!
-      Thread.current[DEFAULT_CONNECTION_KEY] = nil
+      ::Simple::SQL::ConnectionManager.disconnect_all!
+      @default_connection = nil
     end
   end
 end

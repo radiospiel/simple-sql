@@ -4,6 +4,8 @@ end
 require "pg"
 require "active_record"
 
+require_relative "connection_manager"
+
 require_relative "connection/base"
 require_relative "connection/lock"
 require_relative "connection/scope"
@@ -17,80 +19,49 @@ require_relative "connection/type_info"
 # It Method.includes the ConnectionAdapter, which implements ask, all, + friends
 #
 class Simple::SQL::Connection
+  ConnectionManager = ::Simple::SQL::ConnectionManager
+
   def self.create(database_url = :auto)
-    case database_url
-    when nil    then DefaultConnection.new
-    when String then ExplicitConnection.new(database_url)
-    when :auto
-      if ::ActiveRecord::Base.connected?
-        DefaultConnection.new
-      else
-        ExplicitConnection.new(::Simple::SQL::Config.determine_url)
-      end
+    expect! database_url => [nil, :auto, String]
+    new connection_class(database_url)
+  end
+
+  def self.connection_class(database_url)
+    if database_url.nil?
+      ::ActiveRecord::Base
+    elsif database_url.is_a?(String)
+      ConnectionManager.connection_class(database_url)
+    elsif ::ActiveRecord::Base.connected?
+      # database_url is :auto, and we are connected. This happens, for example,
+      # within a rails controller. IT IS IMPORTANT NOT TO CONNECT AGAINST THE
+      # ::Simple::SQL::Config.determine_url! Only so we can make sure that
+      # simple-sql and ActiveRecord can be mixed freely together, i.e. they are
+      # sharing the same connection.
+      ::ActiveRecord::Base
     else
-      expect! database_url => [nil, :auto, String]
+      ConnectionManager.connection_class(::Simple::SQL::Config.determine_url)
     end
   end
 
-  def initialize(active_record_class)
-    @active_record_class = active_record_class
+  def initialize(connection_class)
+    @connection_class = connection_class
   end
 
   def raw_connection
-    @active_record_class.connection.raw_connection
+    @connection_class.connection.raw_connection
   end
 
   def transaction(&block)
-    @active_record_class.connection.transaction(&block)
+    @connection_class.connection.transaction(&block)
+  end
+
+  def disconnect!
+    return unless @connection_class && @connection_class != ::ActiveRecord::Base
+    @connection_class.remove_connection
   end
 
   extend Forwardable
   delegate [:wait_for_notify] => :raw_connection
-
-  # -- specific connection classes --------------------------------------------
-
-  class DefaultConnection < self
-    def initialize
-      @active_record_class = ::ActiveRecord::Base
-    end
-
-    def disconnect!; end
-  end
-
-  class ExplicitConnection < self
-    def initialize(url)
-      super create_active_record_class(url)
-    end
-
-    def disconnect!
-      return unless @active_record_class
-
-      @active_record_class.remove_connection
-    end
-
-    private
-
-    # ActiveRecord needs a class name in order to connect.
-    module WritableClassName
-      attr_accessor :name
-    end
-
-    # create_active_record_class builds a ActiveRecord::Base class, whose
-    # ConnectionPool we are going to use for this connection.
-    def create_active_record_class(url)
-      Class.new(ActiveRecord::Base).tap do |klass|
-        klass.extend WritableClassName
-        klass.name = "Simple::SQL::Connection::ExplicitConnection::Adapter"
-        klass.establish_connection url
-
-        connection_pool = klass.connection_pool
-        connection_pool_stats = {
-          size: connection_pool.size,
-          automatic_reconnect: connection_pool.automatic_reconnect,
-          checkout_timeout: connection_pool.checkout_timeout
-        }
-        ::Simple::SQL.logger.info "#{url}: connected to connection pool w/#{connection_pool_stats.inspect}"
-      end
-    end
-  end
 end
+
+# TODO disconnect! reconnect!
