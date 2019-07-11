@@ -63,5 +63,3 @@ class Simple::SQL::Connection
   extend Forwardable
   delegate [:wait_for_notify] => :raw_connection
 end
-
-# TODO disconnect! reconnect!

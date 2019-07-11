@@ -1,6 +1,6 @@
 # pg 0.21 requires a file "pg/deprecated_constants" to warn about constant
 # deprecations of PGconn, PGresult, and PGError. Since this is the latest
-# version supported by Rails 4.2 Since this is also the latest version 
+# version supported by Rails 4.2 Since this is also the latest version
 # supported by ActiveRecord 4.2.* this means that with such a old version
 # you would be stuck with this rather senseless warning.
 
