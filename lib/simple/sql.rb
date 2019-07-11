@@ -11,6 +11,7 @@ require_relative "sql/result"
 require_relative "sql/config"
 require_relative "sql/logging"
 require_relative "sql/connection"
+require_relative "sql/table_print"
 
 module Simple
   # The Simple::SQL module
@@ -32,6 +33,11 @@ module Simple
       return "NULL" unless s
 
       "'#{PG::Connection.escape_string(s)}'"
+    end
+
+    def table_print(records, io: STDOUT, width: :auto)
+      ::Simple::SQL::TablePrint.table_print(records, width: width, io: io)
+      records
     end
 
     # connects to the database specified via the url parameter. If called

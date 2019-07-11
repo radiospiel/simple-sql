@@ -1,12 +1,12 @@
 # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
 # private
-module Simple::SQL::Helpers::Printer
+module Simple::SQL::TablePrint
   extend self
 
   ROW_SEPARATOR = " | "
 
-  def print(records, io: STDOUT, width: :auto)
+  def table_print(records, io: STDOUT, width: :auto)
     # check args
 
     return if records.empty?
@@ -23,6 +23,7 @@ module Simple::SQL::Helpers::Printer
 
     rows = materialize_rows(records)
     column_widths = column_max_lengths(rows)
+
     if width
       column_widths = distribute_column_widths(column_widths, width, column_count, rows.first)
     end
@@ -67,6 +68,9 @@ module Simple::SQL::Helpers::Printer
     available_chars = total_chars - (column_count - 1) * ROW_SEPARATOR.length
 
     return column_widths if available_chars <= 0
+
+    required_chars = column_widths.sum
+    return column_widths if required_chars < total_chars
 
     # [TODO] The algorithm below produces ok-ish results - but usually misses a few characters
     # that could still be assigned a column. To do this we shuld emply D'Hondt or something

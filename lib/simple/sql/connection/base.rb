@@ -68,7 +68,7 @@ class Simple::SQL::Connection
       records = all sql, *args, into: Hash
     end
 
-    ::Simple::SQL::Helpers::Printer.print(records, width: width, io: io)
+    ::Simple::SQL.table_print(records, width: width, io: io)
     records
   end
 
