@@ -11,19 +11,21 @@ module Simple::SQL
     extend self
 
     def disconnect_all!
-      ActiveRecord::Base.connection_pool.disconnect!
-      connection_classes.values.map(&:connection_pool).each(&:disconnect!)
-      connection_classes.clear
+      ActiveRecord::Base.connection_pool.disconnect! if ActiveRecord::Base.connected?
+
+      connection_classes = connection_class_by_url.values
+      connection_classes.select(&:connected?).map(&:connection_pool).each(&:disconnect!)
+      connection_class_by_url.clear
     end
 
     def connection_class(url)
-      connection_classes[url] ||= create_connection_class(url)
+      connection_class_by_url[url] ||= create_connection_class(url)
     end
 
     private
 
-    def connection_classes
-      @connection_classes ||= {}
+    def connection_class_by_url
+      @connection_class_by_url ||= {}
     end
 
     # ActiveRecord needs a class name in order to connect.
