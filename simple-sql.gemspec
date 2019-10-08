@@ -33,7 +33,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'digest-crc', '~> 0'
 
-  gem.add_dependency 'activerecord', '~> 4'
+  gem.add_dependency 'activerecord', '> 4'
 
   # optional gems (required by some of the parts)
 
