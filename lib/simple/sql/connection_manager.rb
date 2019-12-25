@@ -45,8 +45,17 @@ module Simple::SQL
           automatic_reconnect: connection_pool.automatic_reconnect,
           checkout_timeout: connection_pool.checkout_timeout
         }
-        ::Simple::SQL.logger.info "#{url}: connected to connection pool w/#{connection_pool_stats.inspect}"
+        ::Simple::SQL.logger.info "#{URI.without_password url}: connected to connection pool w/#{connection_pool_stats.inspect}"
       end
     end
+  end
+end
+
+module URI
+  def self.without_password(uri)
+    uri = URI.parse(uri) unless uri.is_a?(URI)
+    uri = uri.dup
+    uri.password = "*" * uri.password.length if uri.password
+    uri
   end
 end

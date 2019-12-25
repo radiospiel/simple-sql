@@ -4,8 +4,9 @@ require "yaml"
 abc = YAML.load_file("config/database.yml")
 ActiveRecord::Base.establish_connection(abc["test"])
 
-# Remove after migration to Rails 5
-ActiveRecord::Base.raise_in_transactional_callbacks = true
+if ActiveRecord::Base.respond_to?(:raise_in_transactional_callbacks=)
+  ActiveRecord::Base.raise_in_transactional_callbacks = true
+end
 
 ActiveRecord::Base.logger = Logger.new("log/test.log")
 

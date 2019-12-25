@@ -23,7 +23,7 @@ module Simple::SQL::Helpers::Decoder
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
-    when :boolean                       then s == "t"
+    when :boolean                       then s == "t" || s == true
     else
       # unknown value, we just return the string here.
       # STDERR.puts "unknown type: #{type.inspect}"
