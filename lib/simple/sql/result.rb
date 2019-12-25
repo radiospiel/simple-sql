@@ -46,6 +46,7 @@ class ::Simple::SQL::Result < Array
   #
   # This is only available for paginated scopes
   def total_count
+    # TODO: Implement total_count for non-paginated scopes!
     @total_count ||= pagination_scope.count
   end
 
@@ -61,7 +62,7 @@ class ::Simple::SQL::Result < Array
   end
 
   def pagination_scope
-    raise "Only available only for paginated scopes" unless paginated?
+    raise "Available only on paginated scopes" unless paginated?
 
     @pagination_scope
   end
