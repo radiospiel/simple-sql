@@ -3,13 +3,9 @@
 # Copyright (c) 2016, 2017 @radiospiel, mediapeers Gem
 # Distributed under the terms of the modified BSD license, see LICENSE.BSD
 
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'simple/sql/version'
-
 Gem::Specification.new do |gem|
   gem.name     = "simple-sql"
-  gem.version  = Simple::SQL::VERSION
+  gem.version  = File.read "VERSION"
 
   gem.authors  = [ "radiospiel", "mediapeers GmbH" ]
   gem.email    = "eno@radiospiel.org"
