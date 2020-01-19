@@ -1,7 +1,8 @@
 # rubocop:disable Style/MultipleComparison
 
 require_relative "scope/shorthand"
-require_relative "scope/filters"
+require_relative "scope/where"
+require_relative "scope/search"
 require_relative "scope/order"
 require_relative "scope/pagination"
 require_relative "scope/count"
@@ -34,6 +35,9 @@ class Simple::SQL::Connection::Scope
   attr_reader :args
   attr_reader :per, :page
 
+  # when initialized with a Hash: contains table name
+  attr_accessor :table_name
+
   def initialize(sql, args = [], connection:) # :nodoc:
     expect! sql => [String, Hash]
 
@@ -60,10 +64,10 @@ class Simple::SQL::Connection::Scope
 
     # -- set table and select -------------------------------------------------
 
-    table = hsh[:table] || raise(ArgumentError, "Missing :table option")
+    @table_name = hsh[:table] || raise(ArgumentError, "Missing :table option")
     select = hsh[:select] || "*"
 
-    @sql = "SELECT #{Array(select).join(', ')} FROM #{table}"
+    @sql = "SELECT #{Array(select).join(', ')} FROM #{table_name}"
 
     # -- apply conditions, if any ---------------------------------------------
 
