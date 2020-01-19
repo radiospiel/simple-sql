@@ -41,12 +41,12 @@ class Simple::SQL::Connection::Scope
   end
 
   def where_sql!(sql_fragment)
-    @filters << sql_fragment
+    @where << sql_fragment
   end
 
   def where_sql_with_argument!(sql_fragment, arg, placeholder:)
     @args << arg
-    @filters << sql_fragment.gsub(placeholder, "$#{@args.length}")
+    @where << sql_fragment.gsub(placeholder, "$#{@args.length}")
   end
 
   def where_hash!(hsh, jsonb:)
@@ -86,7 +86,7 @@ class Simple::SQL::Connection::Scope
 
   def where_jsonb_condition!(column, hsh)
     hsh.each do |key, value|
-      @filters << jsonb_condition(column, key, value)
+      @where << jsonb_condition(column, key, value)
     end
   end
 
@@ -95,16 +95,16 @@ class Simple::SQL::Connection::Scope
 
     case value
     when Array
-      @filters << "#{key} = ANY($#{@args.length})"
+      @where << "#{key} = ANY($#{@args.length})"
     else
-      @filters << "#{key} = $#{@args.length}"
+      @where << "#{key} = $#{@args.length}"
     end
   end
 
-  def apply_filters(sql)
-    active_filters = @filters.compact
-    return sql if active_filters.empty?
+  def apply_where(sql)
+    where = @where.compact
+    return sql if where.empty?
 
-    "#{sql} WHERE (" + active_filters.join(") AND (") + ")"
+    "#{sql} WHERE (" + where.join(") AND (") + ")"
   end
 end

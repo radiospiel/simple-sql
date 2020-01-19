@@ -39,9 +39,9 @@ class Simple::SQL::Connection::Scope
 
     @connection = connection
 
-    @sql     = nil
-    @args    = args
-    @filters = []
+    @sql   = nil
+    @args  = args
+    @where = []
 
     case sql
     when String then @sql = sql
@@ -73,8 +73,9 @@ class Simple::SQL::Connection::Scope
 
   def duplicate
     dupe = SELF.new(@sql, connection: @connection)
+    dupe.instance_variable_set :@table_name, @table_name.dup
     dupe.instance_variable_set :@args, @args.dup
-    dupe.instance_variable_set :@filters, @filters.dup
+    dupe.instance_variable_set :@where, @where.dup
     dupe.instance_variable_set :@per, @per
     dupe.instance_variable_set :@page, @page
     dupe.instance_variable_set :@order_by_fragment, @order_by_fragment
@@ -89,7 +90,7 @@ class Simple::SQL::Connection::Scope
     raise ArgumentError unless pagination == :auto || pagination == false
 
     sql = @sql
-    sql = apply_filters(sql)
+    sql = apply_where(sql)
     sql = apply_order_and_limit(sql)
     sql = apply_pagination(sql, pagination: pagination)
 
