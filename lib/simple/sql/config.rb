@@ -56,7 +56,7 @@ module Simple::SQL::Config
   def load_activerecord_base_configuration(path:, env:)
     require "yaml"
     database_config = YAML.load_file(path)
-    env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+    env ||= ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||
       database_config["defaults"] ||

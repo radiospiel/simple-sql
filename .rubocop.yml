@@ -4,6 +4,7 @@ AllCops:
     - 'spec/**/*'
     - 'test/**/*'
     - 'bin/**/*'
+    - 'scripts/*'
     - 'tasks/release.rake'
     - '*.gemspec'
     - 'Gemfile'
