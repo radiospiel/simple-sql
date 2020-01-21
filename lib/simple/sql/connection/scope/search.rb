@@ -14,15 +14,19 @@ end
 module Simple::SQL::Connection::Scope::Search
   extend self
 
+  ID_REGEXP = /\A[_a-zA-Z][_a-zA-Z0-9]*\z/
+
   # apply the filter hash onto the passed in scope. This matches all filters
   # with a name which is matching a column name against the column values.
   # It matches every other filter value against an entry in the
   # dynamic_filter column.
   def search(scope, filters, dynamic_column:, column_types:)
     expect! filters => [nil, Hash]
+    expect! dynamic_column => ID_REGEXP
+
     filters.each_key do |key|
       expect! key => [Symbol, String]
-      expect! key.to_s => /\A[_a-zA-Z][_a-zA-Z0-9]*\z/
+      expect! key.to_s => ID_REGEXP
     end
 
     return scope if filters.nil? || filters.empty?
@@ -72,6 +76,17 @@ module Simple::SQL::Connection::Scope::Search
   # -- apply dynamic filters --------------------------------------------------
 
   def apply_dynamic_filters(scope, filters, dynamic_column:)
+    # we translate a condition of "foo => []" into a SQL fragment like this:
+    #
+    #  NOT (column ? 'foo') OR column @> '{ "foo" : null }'::jsonb)"
+    #
+    # i.e. we check for non-existing columns and columns that exist but have a
+    # value of null (i.e. column->'key' IS NULL).
+    empty_filters, filters = filters.partition { |_key, value| value.nil? || value.empty? }
+    empty_filters.each do |key, _|
+      scope = scope.where("(NOT #{dynamic_column} ? '#{key}' OR #{dynamic_column} @> '#{::JSON.generate(key => nil)}'::jsonb)")
+    end
+
     return scope if filters.empty?
 
     keys = []
@@ -112,6 +127,8 @@ module Simple::SQL::Connection::Scope::Search
     end
 
     # combine all search conditions with a SQL OR.
+    return scope if sql_fragment_parts.empty?
+
     sql_fragment = "\n\t" + sql_fragment_parts.join(" OR\n\t") + "\n"
     scope.where(sql_fragment)
   end
