@@ -20,8 +20,12 @@ describe "Simple::SQL.search" do
     scope.search(*args).all
   end
 
-  it "filters by one dynamic attribute and one match" do
+  it "filters by one dynamic attribute matching a String" do
     expect(search(even_str: "yes").map(&:id)).to contain_exactly(2,4,6,8,10)
+  end
+
+  it "filters by one dynamic attribute matching an Integer" do
+    expect(search(user_id_squared: 4).map(&:id)).to contain_exactly(2)
   end
 
   it "filters by one dynamic attribute and multiple matches" do

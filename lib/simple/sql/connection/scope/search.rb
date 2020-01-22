@@ -75,6 +75,12 @@ module Simple::SQL::Connection::Scope::Search
 
   # -- apply dynamic filters --------------------------------------------------
 
+  def empty_filter?(_key, value)
+    return true if value.nil?
+    return true if value.is_a?(Enumerable) && value.empty? # i.e. Hash, Array
+    false
+  end
+
   def apply_dynamic_filters(scope, filters, dynamic_column:)
     # we translate a condition of "foo => []" into a SQL fragment like this:
     #
@@ -82,7 +88,7 @@ module Simple::SQL::Connection::Scope::Search
     #
     # i.e. we check for non-existing columns and columns that exist but have a
     # value of null (i.e. column->'key' IS NULL).
-    empty_filters, filters = filters.partition { |_key, value| value.nil? || value.empty? }
+    empty_filters, filters = filters.partition { |key, value| empty_filter?(key, value) }
     empty_filters.each do |key, _|
       scope = scope.where("(NOT #{dynamic_column} ? '#{key}' OR #{dynamic_column} @> '#{::JSON.generate(key => nil)}'::jsonb)")
     end
