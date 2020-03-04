@@ -1,5 +1,9 @@
 # connect to the database and setup the schema
 require "active_record"
+
+# it is important to require simple-sql here to activate monkey patches
+require "simple-sql"
+
 require "yaml"
 abc = YAML.load_file("config/database.yml")
 ActiveRecord::Base.establish_connection(abc["test"])
