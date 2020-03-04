@@ -61,7 +61,7 @@ describe "Simple::SQL.each" do
 
       expect(received.first.id).to eq(1)
       expect(received[1].dupe).to eq(2)
-      expect(received.map(&:class).uniq).to eq([Simple::SQL::Helpers::Immutable])
+      expect(received.map(&:class).uniq).to eq([Simple::Immutable])
     end
   end
 end

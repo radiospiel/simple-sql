@@ -28,6 +28,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'expectation', '~> 1'
 
   gem.add_dependency 'digest-crc', '~> 0'
+  gem.add_dependency 'simple-immutable', '~> 1.0'
 
   # during tests we check the SIMPLE_SQL_ACTIVERECORD_SPECS environment setting.
   # Run make tests to run all tests
