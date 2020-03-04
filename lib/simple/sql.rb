@@ -12,6 +12,7 @@ require_relative "sql/config"
 require_relative "sql/logging"
 require_relative "sql/connection"
 require_relative "sql/table_print"
+require_relative "sql/monkey_patches"
 
 module Simple
   # The Simple::SQL module
