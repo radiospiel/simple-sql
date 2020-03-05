@@ -1,3 +1,5 @@
+require "simple-immutable"
+
 module Simple
   module SQL
     module Helpers
