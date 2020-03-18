@@ -7,14 +7,7 @@ module Simple::SQL::MonkeyPatches
 
     @@warned[msg] = true
 
-    msg = <<~MSG
-      == patching notice: ======================================================================================
-      Note that simple-sql changes the behaviour of underlying gems in subtle ways:
-      #{msg}
-      ==========================================================================================================
-    MSG
-
-    STDERR.puts msg
+    STDERR.puts "== monkeypatch warning: #{msg}"
   end
 end
 
@@ -34,7 +27,7 @@ when /^5.2/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
-      Simple::SQL::MonkeyPatches.warn "disable Reaper for all ActiveRecord connection pools, see https://github.com/rails/rails/issues/33600"
+      Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end
 
@@ -50,7 +43,7 @@ when /^6/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
-      Simple::SQL::MonkeyPatches.warn "disable Reaper for all ActiveRecord connection pools, see https://github.com/rails/rails/issues/33600"
+      Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end
 end
