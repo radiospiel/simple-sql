@@ -84,6 +84,7 @@ class Simple::SQL::Connection::Scope
     dupe.instance_variable_set :@page, @page
     dupe.instance_variable_set :@order_by_fragment, @order_by_fragment
     dupe.instance_variable_set :@limit, @limit
+    dupe.instance_variable_set :@offset, @offset
     dupe
   end
 
