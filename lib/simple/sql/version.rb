@@ -5,6 +5,7 @@ module Simple
 
       def version(name)
         spec = Gem.loaded_specs[name]
+        return "unreleased" unless spec
         version = spec.version.to_s
         version += "+unreleased" if unreleased?(spec)
         version

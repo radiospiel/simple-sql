@@ -23,6 +23,7 @@ describe "Simple::SQL conversions" do
       expects "foo,\"bar}", "SELECT $1::varchar", "foo,\"bar}"
       expects ["one", "two", "3.5", "foo,\"bar}"], "SELECT ARRAY['one', 'two', '3.5', 'foo,\"bar}']"
       expects ["foo", "foo,bar}"], "SELECT $1::varchar[]", ["foo", "foo,bar}"]
+      expects "foo'bar", 'SELECT $1', "foo'bar"
     end
 
     it "parses JSON as expected" do
@@ -42,13 +43,15 @@ describe "Simple::SQL conversions" do
     it "converts hstore" do
       expects({ a: "1", b: "3" }, "SELECT 'a=>1,b=>3'::hstore")
     end
+  end
+  
+  describe "arra conversions" do
+    it "works with strings" do
+      expects  [ "foo", "bar" ], 'SELECT $1::varchar[]', [ "foo", "bar" ]
 
-    xit "fails sometimes w/ malformed array literal, pt. 1" do
-      expects  0, 'SELECT $1::varchar[]', [ "foo", 'foo,"bar}' ]
-    end
-
-    xit "fails sometimes w/ malformed array literal, pt. 2" do
-      expects  0, 'SELECT $1::varchar[]', [ "foo", 'foo,"bar}' ]
+      # test escaping
+      expects  [ "foo", "foo'bar\"baz" ], 'SELECT $1::varchar[]', [ "foo", "foo'bar\"baz" ]
+      expects  [ ], 'SELECT $1::varchar[]', []
     end
   end
 end
