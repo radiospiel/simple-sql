@@ -33,9 +33,9 @@ Gem::Specification.new do |gem|
   # during tests we check the SIMPLE_SQL_ACTIVERECORD_SPECS environment setting.
   # Run make tests to run all tests
   if ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"]
-    gem.add_dependency 'activerecord', '> 4.2', *(ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"].split(","))
+    gem.add_dependency 'activerecord', '>= 5.2.4.5', *(ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"].split(","))
   else
-    gem.add_dependency 'activerecord', '> 4.2', '< 7'
+    gem.add_dependency 'activerecord', '>= 5.2.4.5', '< 7'
   end
 
   # optional gems (required by some of the parts)
