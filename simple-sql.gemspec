@@ -35,7 +35,7 @@ Gem::Specification.new do |gem|
   if ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"]
     gem.add_dependency 'activerecord', '>= 5.2.4.5', *(ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"].split(","))
   else
-    gem.add_dependency 'activerecord', '>= 5.2.4.5', '< 7'
+    gem.add_dependency 'activerecord', '>= 5.2.4.5', '< 6.1'
   end
 
   # optional gems (required by some of the parts)
