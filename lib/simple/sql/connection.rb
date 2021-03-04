@@ -48,7 +48,18 @@ class Simple::SQL::Connection
   end
 
   def raw_connection
-    @connection_class.connection.raw_connection
+    conn = @connection_class.connection.raw_connection
+
+    # The "pg" gem comes with a set of Type mappers to convert between database
+    # responses and the ruby representation. This would make things fatser, especially
+    # with timestamp columns.
+
+    # unless conn.instance_variable_get(:@__simple_sqled__)
+    #   conn.instance_variable_set(:@__simple_sqled__, true)
+    #   conn.type_map_for_results = PG::BasicTypeMapForResults.new conn
+    # end
+
+    conn
   end
 
   def transaction(&block)

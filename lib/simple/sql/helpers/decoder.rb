@@ -1,6 +1,5 @@
 require "time"
 
-# private
 module Simple::SQL::Helpers::Decoder
   extend self
 
@@ -8,22 +7,16 @@ module Simple::SQL::Helpers::Decoder
   # rubocop:disable Metrics/CyclomaticComplexity
   # rubocop:disable Naming/UncommunicativeMethodParamName
   def decode_value(type, s)
+    return s unless s.is_a?(String)
+
     case type
-    when :unknown                       then s
-    when :"character varying"           then s
-    when :integer                       then Integer(s)
-    when :bigint                        then Integer(s)
     when :numeric                       then Float(s)
-    when :"double precision"            then Float(s)
     when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
     when :"character varying[]"         then parse_pg_array(s)
     when :"text[]"                      then parse_pg_array(s)
-    when :"timestamp without time zone" then ::Time.parse(s)
-    when :"timestamp with time zone"    then ::Time.parse(s)
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
-    when :boolean                       then s == "t" || s == true
     else
       # unknown value, we just return the string here.
       # STDERR.puts "unknown type: #{type.inspect}"
@@ -36,8 +29,16 @@ module Simple::SQL::Helpers::Decoder
   require "pg_array_parser"
   extend PgArrayParser
 
-  # HStore parsing
   module HStore
+    # On performance: ActiveRecord parses HStore like this:
+    #
+    # ::ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Hstore.new.deserialize(str)
+    #
+    # but this has half the performance of our solution.
+    #
+    # There is also a "PgHstore" gem, see https://github.com/seamusabshere/pg-hstore,
+    # which is on par with Simple-SQLs solution.
+
     extend self
 
     # thanks to https://github.com/engageis/activerecord-postgres-hstore for regexps!
