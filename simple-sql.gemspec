@@ -42,7 +42,7 @@ Gem::Specification.new do |gem|
 
   # development gems
   gem.add_development_dependency 'pg', '0.20'
-  gem.add_development_dependency 'rake', '~> 11'
+  gem.add_development_dependency 'rake', '>= 12.3.3'
   gem.add_development_dependency 'rspec', '~> 3.7'
   gem.add_development_dependency 'rubocop', '~> 0.61.1'
   gem.add_development_dependency 'simplecov', '~> 0'
