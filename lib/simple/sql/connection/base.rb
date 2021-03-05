@@ -111,7 +111,11 @@ class Simple::SQL::Connection
     end
 
     Logging.with_logged_query self, sql, *args do
-      raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args))
+      result_format = 0 # 0: text, 1: binary
+      # result_format = 0 # 0: text, 1: binary
+      # result_format = 1 # binary
+      # type_map = nil
+      raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args), result_format)
     end
   rescue PG::InvalidTextRepresentation
     raise ArgumentError, $!.to_s
