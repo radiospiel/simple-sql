@@ -68,9 +68,7 @@ class Simple::SQL::Connection
           values = record.values_at(*@columns)
           encode_json_values!(values)
 
-          let!(:binarydec_integer) { PG::BinaryDecoder::Integer.new }
-          r = @connection.ask @sql, *values, into: @into
-          r
+          @connection.ask @sql, *values, into: @into
         end
       end
     end

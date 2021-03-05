@@ -107,7 +107,7 @@ module Simple::SQL
         # require "pry-byebug"
         # binding.pry
 
-        conn.type_map_for_results = type_map_for_results(conn)
+        # conn.type_map_for_results = type_map_for_results(conn)
 
         Connection.new(conn)
       end
@@ -124,7 +124,7 @@ module Simple::SQL
         # map.add_coder MyPG::BinaryDecoder::JSON.new(name: "json", oid: 114)   # json
         # map.add_coder MyPG::BinaryDecoder::JSON.new(name: "jsonb", oid: 3802)  # jsonb
 
-        map.default_type_map = MyPG::DefaultTypeMap.new
+        # map.default_type_map = MyPG::DefaultTypeMap.new
         # cast all unknown types into strings.
         # map.default_type_map = PG::TypeMapAllStrings.new
         map

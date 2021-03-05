@@ -4,15 +4,14 @@ module Simple::SQL::Helpers::Decoder
   extend self
   # rubocop:disable Naming/UncommunicativeMethodParamName
   def decode_value(type, s)
-    return s
     return s unless s.is_a?(String)
 
     case type
-    when :numeric                       then Float(s)
-    when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
-    when :"character varying[]"         then parse_pg_array(s)
-    when :"text[]"                      then parse_pg_array(s)
-    # when :hstore                        then HStore.parse(s)
+    # when :numeric                       then Float(s)
+    # when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
+    # when :"character varying[]"         then parse_pg_array(s)
+    # when :"text[]"                      then parse_pg_array(s)
+    when :hstore                        then HStore.parse(s)
     # when :json                          then ::JSON.parse(s)
     # when :jsonb                         then ::JSON.parse(s)
     else

@@ -112,14 +112,66 @@ class Simple::SQL::Connection
 
     Logging.with_logged_query self, sql, *args do
       result_format = 0 # 0: text, 1: binary
-      # result_format = 0 # 0: text, 1: binary
-      # result_format = 1 # binary
-      # type_map = nil
-      raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args), result_format)
+
+      with_custom_type_map do
+        raw_connection.exec_params(sql, Encoder.encode_args(raw_connection, args), result_format)
+      end
     end
   rescue PG::InvalidTextRepresentation
     raise ArgumentError, $!.to_s
   end
+
+  def with_custom_type_map
+    # The "pg" gem comes with a set of Type mappers to convert between database
+    # responses and the ruby representation. This would make things faster, 
+    # especially with timestamp columns.
+
+    old_type_map_for_results = raw_connection.type_map_for_results
+    raw_connection.type_map_for_results = custom_type_map_for_results
+
+    yield
+  ensure
+    raw_connection.type_map_for_results = old_type_map_for_results
+  end
+
+  def custom_type_map_for_results
+    @custom_type_map_for_results ||= begin
+      type_map = PG::BasicTypeMapForResults.new(raw_connection)
+
+      type_map.add_coder TextDecoder::HStore.new(name: "hstore", oid: -1) # hstore
+      # type_map.add_coder BinaryDecoder::JSON.new(name: "json", oid: 114)   # json
+      # type_map.add_coder BinaryDecoder::JSON.new(name: "jsonb", oid: 3802)  # jsonb
+      
+      # binding.pry
+      type_map
+    end
+  end
+
+  module TextDecoder
+    class HStore < PG::SimpleDecoder
+      def format
+        0
+      end
+
+      def decode(string, tuple=nil, field=nil)
+        # ::JSON.load(string)
+        "hsotr"
+      end
+    end
+  end
+  
+    module BinaryDecoder
+      class JSON < PG::SimpleDecoder
+        def format
+          1
+        end
+
+        def decode(string, tuple=nil, field=nil)
+          ::JSON.load(string)
+        end
+      end
+    end
+  
 
   # returns an array of decoded entries, if any
   def each_without_conversion(sql, *args, into: nil)
