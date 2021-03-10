@@ -21,7 +21,13 @@ class Simple::SQL::Connection::Scope
     sql = order_by(nil).to_sql(pagination: false)
 
     cost = @connection.estimate_cost "SELECT MIN(#{sql_fragment}) FROM (#{sql}) sq", *args
-    raise "enumerate_groups(#{sql_fragment.inspect}) takes too much time. Make sure to create a suitable index" if cost > 10_000
+
+    # cost estimates are good, but are hard to check against a hard coded value.
+    # see https://issues.mediafellows.com/issues/75232
+    #
+    # if cost > 10_000
+    #   raise "enumerate_groups(#{sql_fragment.inspect}) takes too much time. Make sure to create a suitable index"
+    # end
 
     groups = []
     var_name = "$#{@args.count + 1}"
