@@ -2,12 +2,14 @@
 
 module Simple::SQL::MonkeyPatches
   def self.warn(msg)
+    return if ENV["SIMPLE_SQL_SILENCE"] == "1"
+
     @@warned ||= {}
     return if @@warned[msg]
 
     @@warned[msg] = true
 
-    STDERR.puts "== monkeypatch warning: #{msg}"
+    STDERR.puts "== monkeypatch warning: #{msg} (set SIMPLE_SQL_SILENCE=1 to disable)"
   end
 end
 
