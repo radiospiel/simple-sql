@@ -49,8 +49,12 @@ class Simple::SQL::Connection::Scope
   end
 
   def count_by_estimate(sql_fragment)
-    sql = order_by(nil).to_sql(pagination: false)
+    return count_by(sql_fragment)
 
+    # The code below runs an estimate on the effort to count by a group. This is currently
+    # disabled (see https://issues.mediafellows.com/issues/75237).
+
+    sql = order_by(nil).to_sql(pagination: false)
     cost = @connection.estimate_cost "SELECT COUNT(*) FROM (#{sql}) sq GROUP BY #{sql_fragment}", *args
 
     return count_by(sql_fragment) if cost < 10_000
