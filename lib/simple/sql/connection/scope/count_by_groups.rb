@@ -49,11 +49,6 @@ class Simple::SQL::Connection::Scope
   end
 
   def count_by_estimate(sql_fragment)
-    return count_by(sql_fragment)
-
-    # The code below runs an estimate on the effort to count by a group. This is currently
-    # disabled (see https://issues.mediafellows.com/issues/75237).
-
     sql = order_by(nil).to_sql(pagination: false)
     cost = @connection.estimate_cost "SELECT COUNT(*) FROM (#{sql}) sq GROUP BY #{sql_fragment}", *args
 
@@ -67,7 +62,7 @@ class Simple::SQL::Connection::Scope
     counts = {}
     sparse_groups = []
     enumerate_groups(sql_fragment).each do |group|
-      scope = @connection.scope("SELECT * FROM (#{sql}) sq WHERE #{sql_fragment}=#{var_name}", *args, group)
+      scope = @connection.scope("SELECT * FROM (#{sql}) sq WHERE #{sql_fragment}=#{var_name}", args + [group])
       estimated_count = scope.send(:estimated_count)
       counts[group] = estimated_count
       sparse_groups << group if estimated_count < EXACT_COUNT_THRESHOLD
