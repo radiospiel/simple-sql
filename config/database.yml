@@ -1,9 +1,11 @@
 defaults: &defaults
   adapter: postgresql
   encoding: utf8
-  host: '127.0.0.1'
-  username: admin
-  password: admin
+  host: "/private/tmp/"
+  # '127.0.0.1'
+  # host: '127.0.0.1'
+  # username: admin
+  # password: admin
   pool: 5
   timeout: 5000
 
