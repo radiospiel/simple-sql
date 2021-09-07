@@ -3,13 +3,9 @@
 # Copyright (c) 2016, 2017 @radiospiel, mediapeers Gem
 # Distributed under the terms of the modified BSD license, see LICENSE.BSD
 
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'simple/sql/version'
-
 Gem::Specification.new do |gem|
   gem.name     = "simple-sql"
-  gem.version  = Simple::SQL::VERSION
+  gem.version  = File.read "VERSION"
 
   gem.authors  = [ "radiospiel", "mediapeers GmbH" ]
   gem.email    = "eno@radiospiel.org"
@@ -27,21 +23,18 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '~> 2.3'
 
-  gem.add_dependency 'pg_array_parser', '~> 0'
+  gem.add_dependency 'pg_array_parser', '~> 0', '>= 0.0.9'
   gem.add_dependency 'pg', '~> 0.20'
   gem.add_dependency 'expectation', '~> 1'
 
-  # optional gems (required by some of the parts)
+  gem.add_dependency 'digest-crc', '~> 0'
+  gem.add_dependency 'simple-immutable', '~> 1.0'
 
-  # development gems
-  gem.add_development_dependency 'activerecord', '~> 4'
-  gem.add_development_dependency 'pg', '0.20'
-  gem.add_development_dependency 'rake', '~> 11'
-  gem.add_development_dependency 'rspec', '~> 3.7'
-  gem.add_development_dependency 'rubocop', '~> 0.61.1'
-  gem.add_development_dependency 'database_cleaner', '~> 1'
-  gem.add_development_dependency 'simplecov', '~> 0'
-  gem.add_development_dependency 'awesome_print', '~> 0'
-
-  gem.add_development_dependency 'memory_profiler', '~> 0.9.12'
+  # during tests we check the SIMPLE_SQL_ACTIVERECORD_SPECS environment setting.
+  # Run make tests to run all tests
+  if ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"]
+    gem.add_dependency 'activerecord', '>= 5.2.4.5', *(ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"].split(","))
+  else
+    gem.add_dependency 'activerecord', '>= 5.2.4.5', '< 6.1'
+  end
 end

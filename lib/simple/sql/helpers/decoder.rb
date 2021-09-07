@@ -23,7 +23,7 @@ module Simple::SQL::Helpers::Decoder
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
-    when :boolean                       then s == "t"
+    when :boolean                       then s == "t" || s == true
     else
       # unknown value, we just return the string here.
       # STDERR.puts "unknown type: #{type.inspect}"
@@ -38,7 +38,7 @@ module Simple::SQL::Helpers::Decoder
 
   # HStore parsing
   module HStore
-    module_function
+    extend self
 
     # thanks to https://github.com/engageis/activerecord-postgres-hstore for regexps!
 
@@ -67,17 +67,16 @@ module Simple::SQL::Helpers::Decoder
 end
 
 module Simple::SQL::Helpers::Decoder
-  def self.new(connection, result, into:)
-    if into == Hash           then HashRecord.new(connection, result)
-    elsif result.nfields == 1 then SingleColumn.new(connection, result)
-    else                           MultiColumns.new(connection, result)
+  def self.new(result, into:, column_info:)
+    if into == Hash           then HashRecord.new(column_info)
+    elsif result.nfields == 1 then SingleColumn.new(column_info)
+    else                           MultiColumns.new(column_info)
     end
   end
 
   class SingleColumn
-    def initialize(connection, result)
-      typename = connection.resolve_type(result.ftype(0), result.fmod(0))
-      @field_type = typename.to_sym
+    def initialize(column_info)
+      @field_type = column_info.first.fetch(:pg_type_name)
     end
 
     def decode(row)
@@ -87,11 +86,10 @@ module Simple::SQL::Helpers::Decoder
   end
 
   class MultiColumns
-    def initialize(connection, result)
-      @field_types = 0.upto(result.fields.length - 1).map do |idx|
-        typename = connection.resolve_type(result.ftype(idx), result.fmod(idx))
-        typename.to_sym
-      end
+    H = ::Simple::SQL::Helpers
+
+    def initialize(column_info)
+      @field_types = H.pluck(column_info, :pg_type_name)
     end
 
     def decode(row)
@@ -102,9 +100,11 @@ module Simple::SQL::Helpers::Decoder
   end
 
   class HashRecord < MultiColumns
-    def initialize(connection, result)
-      super(connection, result)
-      @field_names = result.fields.map(&:to_sym)
+    H = ::Simple::SQL::Helpers
+
+    def initialize(column_info)
+      super(column_info)
+      @field_names = H.pluck(column_info, :name)
     end
 
     def decode(row)

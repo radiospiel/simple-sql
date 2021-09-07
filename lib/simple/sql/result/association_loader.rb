@@ -12,7 +12,6 @@ require "active_support/core_ext/string/inflections"
 module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   extend self
 
-  SQL = ::Simple::SQL
   H = ::Simple::SQL::Helpers
 
   private
@@ -23,10 +22,10 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   # "foo.users", if such a table exists.
   #
   # Raises an ArgumentError if no matching table can be found.
-  def find_associated_table(association, schema:)
+  def find_associated_table(connection, association, schema:)
     fq_association = "#{schema}.#{association}"
 
-    tables_in_schema = ::Simple::SQL::Reflection.table_info(schema: schema).keys
+    tables_in_schema = connection.reflection.table_info(schema: schema).keys
 
     return fq_association              if tables_in_schema.include?(fq_association)
     return fq_association.singularize  if tables_in_schema.include?(fq_association.singularize)
@@ -49,7 +48,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   #
   # Raises an ArgumentError if no association can be found between these tables.
   #
-  def find_matching_relation(host_table, associated_table)
+  def find_matching_relation(connection, host_table, associated_table)
     expect! host_table => /^[^.]+.[^.]+$/
     expect! associated_table => /^[^.]+.[^.]+$/
 
@@ -73,7 +72,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
         OR (belonging_table=$2 AND having_table=$1)
     SQL
 
-    relations = SQL.all(sql, host_table, associated_table, into: :struct)
+    relations = connection.all(sql, host_table, associated_table, into: :struct)
 
     return relations.first if relations.length == 1
 
@@ -87,16 +86,16 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   end
 
   # preloads a belongs_to association.
-  def preload_belongs_to(records, relation, as:)
+  def preload_belongs_to(connection, records, relation, as:)
     belonging_column = relation.belonging_column.to_sym
     having_column = relation.having_column.to_sym
 
     foreign_ids = H.pluck(records, belonging_column).uniq.compact
 
-    scope = SQL::Scope.new(table: relation.having_table)
+    scope = connection.scope(table: relation.having_table)
     scope = scope.where(having_column => foreign_ids)
 
-    recs = SQL.all(scope, into: Hash)
+    recs = connection.all(scope, into: Hash)
     recs_by_id = H.by_key(recs, having_column)
 
     records.each do |model|
@@ -105,7 +104,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   end
 
   # preloads a has_one or has_many association.
-  def preload_has_one_or_many(records, relation, as:, order_by:, limit:)
+  def preload_has_one_or_many(connection, records, relation, as:, order_by:, limit:)
     # To really make sense limit must be implemented using window
     # functions, because one (or, at lieast, I) would expect this code
     #
@@ -122,11 +121,11 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
 
     host_ids  = H.pluck(records, having_column).uniq.compact
 
-    scope     = SQL::Scope.new(table: relation.belonging_table)
+    scope     = connection.scope(table: relation.belonging_table)
     scope     = scope.where(belonging_column => host_ids)
     scope     = scope.order_by(order_by) if order_by
 
-    recs      = SQL.all(scope, into: Hash)
+    recs      = connection.all(scope, into: Hash)
 
     if as.to_s.singularize == as.to_s
       recs_by_id = H.by_key(recs, belonging_column) # has_one
@@ -150,7 +149,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
   # - host_table: the name of the table \a records has been loaded from.
   # - schema: the schema name in the database.
   # - as: the name to sue for the association. Defaults to +association+
-  def preload(records, association, host_table:, schema:, as:, order_by:, limit:)
+  def preload(connection, records, association, host_table:, schema:, as:, order_by:, limit:)
     return records if records.empty?
 
     expect! records.first => Hash
@@ -158,17 +157,17 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     as = association if as.nil?
     fq_host_table = "#{schema}.#{host_table}"
 
-    associated_table = find_associated_table(association, schema: schema)
-    relation         = find_matching_relation(fq_host_table, associated_table)
+    associated_table = find_associated_table(connection, association, schema: schema)
+    relation         = find_matching_relation(connection, fq_host_table, associated_table)
 
     if fq_host_table == relation.belonging_table
       if order_by || limit
         raise ArgumentError, "#{association.inspect} is a singular association, w/o support for order_by: and limit:"
       end
 
-      preload_belongs_to records, relation, as: as
+      preload_belongs_to connection, records, relation, as: as
     else
-      preload_has_one_or_many records, relation, as: as, order_by: order_by, limit: limit
+      preload_has_one_or_many connection, records, relation, as: as, order_by: order_by, limit: limit
     end
   end
 end

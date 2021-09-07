@@ -1,10 +1,10 @@
-# rubocop:disable Naming/AccessorMethodName
 # rubocop:disable Style/DoubleNegation
 # rubocop:disable Style/GuardClause
 
 require_relative "helpers"
 
 class ::Simple::SQL::Result < Array
+  attr_accessor :column_info
 end
 
 require_relative "result/records"
@@ -20,44 +20,34 @@ class ::Simple::SQL::Result < Array
   # A Result object is requested via ::Simple::SQL::Result.build, which then
   # chooses the correct implementation, based on the <tt>target_type:</tt>
   # parameter.
-  def self.build(records, target_type:, pg_source_oid:) # :nodoc:
+  def self.build(connection, records, target_type:, pg_source_oid:) # :nodoc:
     if target_type.nil?
-      new(records)
+      new(connection, records)
     else
-      Records.new(records, target_type: target_type, pg_source_oid: pg_source_oid)
+      Records.new(connection, records, target_type: target_type, pg_source_oid: pg_source_oid)
     end
   end
 
-  def initialize(records) # :nodoc:
+  attr_reader :connection
+
+  def initialize(connection, records) # :nodoc:
+    @connection = connection
     replace(records)
   end
 
   # returns the (potentialy estimated) total count of results
   #
   # This is only available for paginated scopes
-  def total_fast_count
-    @total_fast_count ||= pagination_scope.fast_count
-  end
-
-  # returns the (potentialy estimated) total number of pages
-  #
-  # This is only available for paginated scopes
-  def total_fast_pages
-    @total_fast_pages ||= (total_fast_count * 1.0 / pagination_scope.per).ceil
+  def total_count_estimate
+    @total_count_estimate ||= pagination_scope.count_estimate
   end
 
   # returns the (potentialy slow) exact total count of results
   #
   # This is only available for paginated scopes
   def total_count
+    # TODO: Implement total_count for non-paginated scopes!
     @total_count ||= pagination_scope.count
-  end
-
-  # returns the (potentialy estimated) total number of pages
-  #
-  # This is only available for paginated scopes
-  def total_pages
-    @total_pages ||= (total_count * 1.0 / pagination_scope.per).ceil
   end
 
   # returns the current page number in a paginated search
@@ -71,15 +61,13 @@ class ::Simple::SQL::Result < Array
     !!@pagination_scope
   end
 
-  private
-
   def pagination_scope
-    raise "Only available only for paginated scopes" unless paginated?
+    raise "Available only on paginated scopes" unless paginated?
 
     @pagination_scope
   end
 
-  def set_pagination_info(scope)
+  def pagination_scope=(scope)
     raise ArgumentError, "per must be > 0" unless scope.per > 0
 
     @pagination_scope = scope
@@ -90,9 +78,7 @@ class ::Simple::SQL::Result < Array
     if scope.page <= 1 && empty?
       @current_page = 1
       @total_count  = 0
-      @total_pages  = 1
-      @total_fast_count  = 0
-      @total_fast_pages  = 1
+      @total_count_estimate = 0
     end
   end
 end

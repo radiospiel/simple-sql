@@ -8,11 +8,27 @@ module Simple::SQL::Helpers::Encoder
 
   def encode_arg(connection, arg)
     return arg unless arg.is_a?(Array)
+    return "{}" if arg.empty?
 
-    if arg.first.is_a?(String)
-      "{#{arg.map { |a| "\"#{connection.escape(a)}\"" }.join(',')}}"
+    encoded_ary = encode_array(connection, arg)
+    "{" + encoded_ary.join(",") + "}"
+  end
+
+  def encode_array(connection, ary)
+    case ary.first
+    when String
+      ary.map do |str|
+        str = connection.escape(str)
+
+        # These fixes have been discovered during tests. see spec/simple/sql/conversion_spec.rb
+        str = str.gsub("\"", "\\\"")
+        str = str.gsub("''", "'")
+        "\"#{str}\""
+      end
+    when Integer
+      ary
     else
-      "{#{arg.join(',')}}"
+      raise ArgumentError, "Don't know how to encode array of #{ary.first.class}"
     end
   end
 end

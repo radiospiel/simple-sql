@@ -4,6 +4,7 @@ AllCops:
     - 'spec/**/*'
     - 'test/**/*'
     - 'bin/**/*'
+    - 'scripts/*'
     - 'tasks/release.rake'
     - '*.gemspec'
     - 'Gemfile'
@@ -76,3 +77,5 @@ Style/PerlBackrefs:
 Style/TrailingUnderscoreVariable:
   Enabled: false
   
+Style/StderrPuts:
+  Enabled: false

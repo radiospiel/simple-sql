@@ -1,4 +1,5 @@
 require_relative "./immutable"
+require "simple/immutable"
 
 module Simple::SQL::Helpers::RowConverter
   SELF = self
@@ -57,7 +58,7 @@ module Simple::SQL::Helpers::RowConverter
   end
 
   class ImmutableConverter < TypeConverter #:nodoc:
-    Immutable = ::Simple::SQL::Helpers::Immutable
+    Immutable = ::Simple::Immutable
 
     def build_row_in_target_type(hsh)
       Immutable.create hsh

@@ -19,17 +19,16 @@ class Simple::SQL::Connection::Scope
     @connection.ask("SELECT COUNT(*) FROM (#{sql}) _total_count", *args)
   end
 
+  # returns the query plan as a Hash.
+  def explain
+    sql = to_sql(pagination: false)
+    explanation = @connection.ask("EXPLAIN (FORMAT JSON) #{sql}", *args).first || {}
+    explanation["Plan"]
+  end
+
   private
 
   def estimated_count
-    sql = order_by(nil).to_sql(pagination: false)
-    lines = @connection.all("EXPLAIN #{sql}", *args)
-    lines.each do |line|
-      next unless line =~ /\brows=(\d+)/
-
-      return Integer($1)
-    end
-
-    -1
+    order_by(nil).explain.fetch("Plan Rows", -1)
   end
 end

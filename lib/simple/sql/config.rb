@@ -1,9 +1,8 @@
 # rubocop:disable Metrics/AbcSize
 # rubocop:disable Metrics/CyclomaticComplexity
 # rubocop:disable Metrics/PerceivedComplexity
-# rubocop:disable Layout/AlignHash
 
-# private
+# module to determine database configuration
 module Simple::SQL::Config
   extend self
 
@@ -28,14 +27,21 @@ module Simple::SQL::Config
 
   # determines the database_url from either the DATABASE_URL environment setting
   # or a config/database.yml file.
-  def determine_url
-    ENV["DATABASE_URL"] || database_url_from_database_yml
+  def determine_url(path: nil)
+    if path
+      database_url_from_database_yml(path)
+    elsif ENV["DATABASE_URL"]
+      ENV["DATABASE_URL"]
+    else
+      database_url_from_database_yml("config/database.yml")
+    end
   end
 
   private
 
-  def database_url_from_database_yml
-    abc = read_database_yml
+  def database_url_from_database_yml(path)
+    abc = load_activerecord_base_configuration(path: path, env: ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+
     username, password, host, port, database = abc.values_at "username", "password", "host", "port", "database"
 
     URI::Generic.build(
@@ -47,13 +53,13 @@ module Simple::SQL::Config
     ).to_s
   end
 
-  def read_database_yml
+  def load_activerecord_base_configuration(path:, env:)
     require "yaml"
-    database_config = YAML.load_file "config/database.yml"
-    env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+    database_config = YAML.load_file(path)
+    env ||= ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||
       database_config["defaults"] ||
-      raise("Invalid or missing database configuration in config/database.yml for #{env.inspect} environment")
+      raise("Invalid or missing database configuration in #{path} for #{env.inspect} environment")
   end
 end
