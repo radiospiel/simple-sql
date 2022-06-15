@@ -8,3 +8,4 @@ Gemfile.lock
 .rspec.status
 .DS_Store
 tmp
+log/integration_tests.log

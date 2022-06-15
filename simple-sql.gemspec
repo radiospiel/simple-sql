@@ -24,17 +24,16 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = '~> 2.3'
 
   gem.add_dependency 'pg_array_parser', '~> 0', '>= 0.0.9'
-  gem.add_dependency 'pg', '~> 0.20'
   gem.add_dependency 'expectation', '~> 1'
 
   gem.add_dependency 'digest-crc', '~> 0'
   gem.add_dependency 'simple-immutable', '~> 1.0'
 
+  pg_specs = ENV["SIMPLE_SQL_PG_SPECS"] || '~> 0.20'
+  gem.add_dependency 'pg', *(pg_specs.split(","))
+
   # during tests we check the SIMPLE_SQL_ACTIVERECORD_SPECS environment setting.
   # Run make tests to run all tests
-  if ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"]
-    gem.add_dependency 'activerecord', '>= 5.2.4.5', *(ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"].split(","))
-  else
-    gem.add_dependency 'activerecord', '>= 5.2.4.5', '< 6.1'
-  end
+  activerecord_specs = ENV["SIMPLE_SQL_ACTIVERECORD_SPECS"] || '< 6.1'
+  gem.add_dependency 'activerecord', '>= 5.2.4.5', *(activerecord_specs.split(","))
 end

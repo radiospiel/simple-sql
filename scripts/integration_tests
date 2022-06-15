@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+echo "Starting integration tests. We log into log/integration_tests.log"
+
+rm log/integration_tests.log
+touch log/integration_tests.log
+
+export SIMPLE_SQL_SILENCE=1
+
+run_test() {
+  local activerecord_spec=$1
+  local pg_spec=$2
+
+  export SIMPLE_SQL_ACTIVERECORD_SPECS="$activerecord_spec"
+  export SIMPLE_SQL_PG_SPECS="$pg_spec"
+
+  printf "=== Running test w/SIMPLE_SQL_ACTIVERECORD_SPECS='%s' SIMPLE_SQL_PG_SPECS='%s'\n" "$SIMPLE_SQL_ACTIVERECORD_SPECS" "$SIMPLE_SQL_PG_SPECS" | tee -a log/integration_tests.log
+
+  if ! bundle update >> log/integration_tests.log ; then
+    echo "Bundling failed"
+    set -xv
+    bundle update
+    exit 1
+  fi
+  
+  if ! bundle exec rspec >> log/integration_tests.log ; then
+    echo "Tests failed"
+    set -xv
+    bundle exec rspec
+    exit 1
+  fi
+}
+
+run_test "> 5,< 6" "~> 0.20"
+run_test "> 5,< 6" "~> 1.0.0"
+run_test "> 5,< 6" "~> 1.1.0"
+run_test "> 5,< 6" "~> 1.2.0"
+run_test "> 5,< 6" "~> 1.3.0"
+
+run_test "> 6,< 7" "~> 1.1.0"
+run_test "> 6,< 7" "~> 1.2.0"
+run_test "> 6,< 7" "~> 1.3.0"
+
+run_test "> 7,< 8" "~> 1.1.0"
+run_test "> 7,< 8" "~> 1.2.0"
+run_test "> 7,< 8" "~> 1.3.0"
+
