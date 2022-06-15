@@ -18,8 +18,8 @@ module Simple::SQL::Helpers::Decoder
     when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
     when :"character varying[]"         then parse_pg_array(s)
     when :"text[]"                      then parse_pg_array(s)
-    when :"timestamp without time zone" then ::Time.parse(s)
-    when :"timestamp with time zone"    then ::Time.parse(s)
+    when :"timestamp without time zone" then decode_time(s)
+    when :"timestamp with time zone"    then decode_time(s)
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
@@ -35,6 +35,11 @@ module Simple::SQL::Helpers::Decoder
 
   require "pg_array_parser"
   extend PgArrayParser
+
+  def decode_time(s)
+    return s if s.is_a?(Time)
+    ::Time.parse(s)
+  end
 
   # HStore parsing
   module HStore
