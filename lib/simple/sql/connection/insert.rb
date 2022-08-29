@@ -7,15 +7,15 @@ class Simple::SQL::Connection
   # - records - a single hash of attributes or an array of hashes of attributes
   # - on_conflict - uses a postgres ON CONFLICT clause to ignore insert conflicts if true
   #
-  def insert(table, records, on_conflict: nil, into: nil)
+  def insert(table, records, options = { on_conflict: nil, into: nil })
     if records.is_a?(Hash)
-      inserted_records = insert(table, [records], on_conflict: on_conflict, into: into)
+      inserted_records = insert(table, [records], on_conflict: options[:on_conflict], into: options[:into])
       return inserted_records.first
     end
 
     return [] if records.empty?
 
-    inserter = inserter(table_name: table.to_s, columns: records.first.keys, on_conflict: on_conflict, into: into)
+    inserter = inserter(table_name: table.to_s, columns: records.first.keys, on_conflict: options[:on_conflict], into: options[:into])
     inserter.insert(records: records)
   end
 

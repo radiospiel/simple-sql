@@ -5,7 +5,12 @@ require "active_record"
 require "simple-sql"
 
 require "yaml"
-abc = YAML.load_file("config/database.yml")
+abc = if Psych::VERSION > '4.0'
+  YAML.load_file "config/database.yml" , aliases: true
+else
+  YAML.load_file "config/database.yml"
+end
+
 ActiveRecord::Base.establish_connection(abc["test"])
 
 if ActiveRecord::Base.respond_to?(:raise_in_transactional_callbacks=)

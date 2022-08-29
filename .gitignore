@@ -1,7 +1,7 @@
 coverage
 rdoc
 pkg
-log/test.log
+log/*.log
 .rspec.data
 Gemfile.lock
 .rake_t_cache
@@ -9,3 +9,4 @@ Gemfile.lock
 .DS_Store
 tmp
 log/integration_tests.log
+config/database.yml

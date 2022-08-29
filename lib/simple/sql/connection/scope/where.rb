@@ -22,17 +22,17 @@ class Simple::SQL::Connection::Scope
   #
   # scope = scope.where(metadata: { uid: 1 }, jsonb: false)
   #
-  def where(sql_fragment, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
-    duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder, jsonb: jsonb)
+  def where(sql_fragment, arg = :__dummy__no__arg, options = { placeholder: "?", jsonb: true })
+    duplicate.send(:where!, sql_fragment, arg, **options)
   end
 
   private
 
-  def where!(first_arg, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
+  def where!(first_arg, arg = :__dummy__no__arg, options = { placeholder: "?", jsonb: true })
     if arg != :__dummy__no__arg
-      where_sql_with_argument!(first_arg, arg, placeholder: placeholder)
+      where_sql_with_argument!(first_arg, arg, placeholder: options[:placeholder])
     elsif first_arg.is_a?(Hash)
-      where_hash!(first_arg, jsonb: jsonb)
+      where_hash!(first_arg, jsonb: options[:jsonb])
     else
       where_sql!(first_arg)
     end

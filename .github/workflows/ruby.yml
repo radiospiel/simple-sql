@@ -1,0 +1,49 @@
+# Github action description file for Testing Rails apps with
+# Rspec, SimpleCov and Rubocop, using Postgres as Database
+#
+# Inspired by https://dev.to/abdellani/github-actions-to-run-rubocop-and-rspec-tests-on-rails-with-postgres-47i
+# and initially taken from https://github.com/abdellani/rails-github-actions/blob/development/.github/workflows/workflow.yml
+# and then sligtly modified by Stefan Horning
+
+name: Ruby tests
+on: [push, pull_request]
+
+jobs:
+  rspec-test:
+    name: Rspec suite
+    runs-on: ubuntu
+    strategy:
+      matrix:
+        ruby: [2.7, 3.0, 3.1]
+        activerecord: ["> 5, < 6", "> 6, < 7", "< 7.1"]
+        pg: ["~> 0.2", "~> 1.0", "~> 1.1", "~> 1.2", "~> 1.3", "~> 1.4"]
+    env:
+      SIMPLE_SQL_ACTIVERECORD_SPECS: "{{matrix.activerecord}}"
+      SIMPLE_SQL_PG_SPECS: "{{matrix.pg}}"
+      PG_USER: postgres
+      PG_PW: postgres
+      PG_PORT: 5432
+    steps:
+      - name: Clone repo into CI env
+        uses: actions/checkout@v2
+
+      - name: Install Ruby and bundler and bundle project
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "{{ ruby }}"
+          bundler-cache: true
+
+      - name: Install postgres client lib
+        run: sudo apt-get install libpq-dev
+
+      - name: Install gem dependencies
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Run Configure
+        run: cp config/database.yml.sample config/database.yml
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Run Rubocop linting
+        run: bundle exec rubocop --color --parallel

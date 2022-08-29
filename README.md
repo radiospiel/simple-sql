@@ -272,4 +272,5 @@ It therefore assumes ActiveRecord is used in the same project, which sets up pg 
 
 1. `createdb simple-sql-test`
 2. `bundle install`
-3. `bin/rspec`
+3. `cp config/database.yml.sample config/database.yml`
+4. `bundle exec rspec`
