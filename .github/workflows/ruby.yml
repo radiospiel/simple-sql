@@ -15,8 +15,8 @@ jobs:
             ruby: 3.1
             pg: "~> 0.2"
     env:
-      SIMPLE_SQL_ACTIVERECORD_SPECS: "{{matrix.activerecord}}"
-      SIMPLE_SQL_PG_SPECS: "{{matrix.pg}}"
+      SIMPLE_SQL_ACTIVERECORD_SPECS: "{{ matrix.activerecord }}"
+      SIMPLE_SQL_PG_SPECS: "{{ matrix.pg }}"
       PG_USER: postgres
       PG_PW: postgres
       PG_PORT: 5432
@@ -27,7 +27,7 @@ jobs:
       - name: Install Ruby and bundler and bundle project
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "{{ ruby }}"
+          ruby-version: "{{ matrix.ruby }}"
           bundler-cache: true
 
       - name: Install postgres client lib
