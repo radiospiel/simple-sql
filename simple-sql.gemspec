@@ -6,9 +6,10 @@
 Gem::Specification.new do |gem|
   gem.name     = "simple-sql"
   gem.version  = File.read "VERSION"
+  gem.license  = "MIT"
 
-  gem.authors  = [ "radiospiel", "mediafellows GmbH" ]
-  gem.email    = "eno@radiospiel.org"
+  gem.authors  = [ "radiospiel", "mediafellows GmbH", "Oleg Bovykin" ]
+  gem.email    = ["eno@radiospiel.org", "oleg.bovykin@mediafellows.com"]
   gem.homepage = "http://github.com/mediafellows/simple-sql"
   gem.summary  = "SQL with a simple interface"
 
