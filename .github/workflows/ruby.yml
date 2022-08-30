@@ -49,6 +49,9 @@ jobs:
       - name: Install postgres client lib
         run: sudo apt-get install libpq-dev
 
+      - name: Create test DB
+        run: bundle exec rake test:prepare_db
+
       - name: Install gem dependencies
         run: bundle install --jobs 4 --retry 3
 
