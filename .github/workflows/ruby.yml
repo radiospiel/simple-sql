@@ -5,6 +5,22 @@ jobs:
   rspec-test:
     name: Rspec suite
     runs-on: ubuntu-latest
+    services:
+      # Docker services, use images from Docker hub
+      # Using dockers health-check to wait for services to start,
+      # see https://ryaneschinger.com/blog/using-docker-native-health-checks/
+      postgres:
+        image: postgres:12.5
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 15
     strategy:
       matrix:
         ruby: [2.7, 3.1]
