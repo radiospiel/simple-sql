@@ -57,6 +57,7 @@ class Simple::SQL::Connection
 
   def disconnect!
     return unless @connection_class && @connection_class != ::ActiveRecord::Base
+
     @connection_class.remove_connection
   end
 

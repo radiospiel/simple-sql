@@ -31,9 +31,7 @@ end
 class Simple::SQL::Connection::Scope
   SELF = self
 
-  attr_reader :connection
-  attr_reader :args
-  attr_reader :per, :page
+  attr_reader :connection, :args, :per, :page
 
   # when initialized with a Hash: contains table name
   attr_accessor :table_name

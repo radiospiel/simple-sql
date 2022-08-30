@@ -60,7 +60,9 @@ class Simple::SQL::Connection::Scope
     end
   end
 
+  # rubocop:disable Style/RedundantRegexpEscape
   ID_REGEXP = /\A[A-Za-z0-9_\.]+\z/
+  # rubocop:enable Style/RedundantRegexpEscape
 
   def validate_column!(column)
     unless column.is_a?(Symbol) || column.is_a?(String)

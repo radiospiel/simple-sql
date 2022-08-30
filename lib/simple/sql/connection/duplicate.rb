@@ -19,9 +19,7 @@ class Simple::SQL::Connection
   end
 
   class Duplicator
-    attr_reader :connection
-    attr_reader :table_name
-    attr_reader :custom_overrides
+    attr_reader :connection, :table_name, :custom_overrides
 
     def initialize(connection, table_name, overrides)
       @connection       = connection

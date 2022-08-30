@@ -4,9 +4,7 @@ require "time"
 module Simple::SQL::Helpers::Decoder
   extend self
 
-  # rubocop:disable Metrics/AbcSize
-  # rubocop:disable Metrics/CyclomaticComplexity
-  # rubocop:disable Naming/UncommunicativeMethodParamName
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Style/MultipleComparison
   def decode_value(type, s)
     case type
     when :unknown                       then s
@@ -30,14 +28,14 @@ module Simple::SQL::Helpers::Decoder
       s
     end
   end
-  # rubocop:enable Metrics/AbcSize
-  # rubocop:enable Metrics/CyclomaticComplexity
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Style/MultipleComparison
 
   require "pg_array_parser"
   extend PgArrayParser
 
   def decode_time(s)
     return s if s.is_a?(Time)
+
     ::Time.parse(s)
   end
 

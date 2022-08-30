@@ -1,4 +1,3 @@
-# rubocop:disable Style/DoubleNegation
 # rubocop:disable Style/GuardClause
 
 require_relative "helpers"

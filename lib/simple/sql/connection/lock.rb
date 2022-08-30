@@ -55,7 +55,7 @@ class Simple::SQL::Connection
       key  = apply_bitmask(key, MASK_31_BITS)
       key2 = apply_bitmask(key2, MASK_31_BITS)
     else
-      key  = apply_bitmask(key, MASK_63_BITS)
+      key = apply_bitmask(key, MASK_63_BITS)
     end
 
     if timeout
@@ -70,7 +70,6 @@ class Simple::SQL::Connection
   MASK_31_BITS = 0x7fffffff
   MASK_63_BITS = 0x7fffffffffffffff
 
-  # rubocop:disable Naming/UncommunicativeMethodParamName
   def apply_bitmask(n, mask)
     if n < 0
       -((-n) & mask)

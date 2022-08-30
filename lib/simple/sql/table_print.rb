@@ -62,6 +62,7 @@ module Simple::SQL::TablePrint
 
   MIN_COLUMN_WIDTH = 7
 
+  # rubocop:disable Metrics/PerceivedComplexity
   def distribute_column_widths(column_widths, total_chars, column_count, title_row)
     # caluclate available width: this is the number of characters available in
     # total, reduced by the characters "wasted" for row separators.

@@ -1,5 +1,3 @@
-# rubocop:disable Naming/UncommunicativeMethodParamName
-
 require_relative "association_loader"
 
 class ::Simple::SQL::Result::Records < ::Simple::SQL::Result

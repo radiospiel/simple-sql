@@ -13,6 +13,7 @@ module Simple::SQL::MonkeyPatches
   end
 end
 
+# rubocop:disable Lint/DuplicateMethods
 case ActiveRecord.gem_version.to_s
 when /^4/
   :nop
@@ -29,6 +30,7 @@ when /^5.2/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
+
       Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end
@@ -45,7 +47,9 @@ when /^6/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
+
       Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end
 end
+# rubocop:enable Lint/DuplicateMethods
