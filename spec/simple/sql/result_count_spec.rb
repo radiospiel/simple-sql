@@ -13,7 +13,7 @@ describe "Simple::SQL::Result counts" do
       expect(result.current_page).to eq(1)
     end
   end
-  
+
   describe "fast counting" do
     it "counts fast" do
       result = SQL.all(paginated_scope)
@@ -32,7 +32,6 @@ describe "Simple::SQL::Result counts" do
       expect { result.total_count_estimate }.to raise_error(RuntimeError)
     end
   end
-
 
   context 'when running with an empty, paginated paginated_scope' do
     let(:scope)           { SQL.scope("SELECT * FROM users WHERE FALSE") }

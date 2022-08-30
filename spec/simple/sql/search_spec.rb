@@ -1,17 +1,19 @@
 require "spec_helper"
 
 describe "Simple::SQL.search" do
+  # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
   let!(:users) do
-    1.upto(10).map { |i| 
+    1.upto(10).map do |i|
       metadata = { user_id_squared: i * i, id_string: "user-#{i}", even_str: i.even? ? "yes" : "no" }
       metadata[:odd] = true if i.odd?
-      metadata[:always_odd] = i.odd? ? true : nil      # always_even is always set, in contrast to odd
+      metadata[:always_odd] = i.odd? ? true : nil # always_even is always set, in contrast to odd
       create(:user, role_id: i, metadata: metadata)
-    } 
+    end
   end
+  # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
 
   let(:scope) do
-    scope = SQL.scope("SELECT * FROM users") 
+    scope = SQL.scope("SELECT * FROM users")
     scope.table_name = "users"
     scope
   end
@@ -21,7 +23,7 @@ describe "Simple::SQL.search" do
   end
 
   it "filters by one dynamic attribute matching a String" do
-    expect(search(even_str: "yes").map(&:id)).to contain_exactly(2,4,6,8,10)
+    expect(search(even_str: "yes").map(&:id)).to contain_exactly(2, 4, 6, 8, 10)
   end
 
   it "filters by one dynamic attribute matching an Integer" do
@@ -29,15 +31,15 @@ describe "Simple::SQL.search" do
   end
 
   it "filters by one dynamic attribute and multiple matches" do
-    expect(search(user_id_squared: [1, 3, 9]).map(&:id)).to contain_exactly(1,3)
+    expect(search(user_id_squared: [1, 3, 9]).map(&:id)).to contain_exactly(1, 3)
   end
 
   it "filters by unknown dynamic attribute" do
-    expect(search(no_such_str: "yes").map(&:id)).to contain_exactly()
+    expect(search(no_such_str: "yes").map(&:id)).to contain_exactly
   end
 
   it "converts strings to integers" do
-    expect(search(user_id_squared: [1, "4", "9"]).map(&:id)).to contain_exactly(1,2,3)
+    expect(search(user_id_squared: [1, "4", "9"]).map(&:id)).to contain_exactly(1, 2, 3)
   end
 
   it "filters by multiple dynamic attributes" do

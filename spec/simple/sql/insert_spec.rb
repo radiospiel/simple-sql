@@ -10,7 +10,7 @@ describe "Simple::SQL.insert" do
       id = SQL.insert :users, first_name: "foo", last_name: "bar"
       expect(id).to be_a(Integer)
       expect(initial_ids).not_to include(id)
-      expect(SQL.ask("SELECT count(*) FROM users")).to eq(USER_COUNT+1)
+      expect(SQL.ask("SELECT count(*) FROM users")).to eq(USER_COUNT + 1)
 
       user = SQL.ask("SELECT * FROM users WHERE id=$1", id, into: OpenStruct)
       expect(user.first_name).to eq("foo")
@@ -32,23 +32,23 @@ describe "Simple::SQL.insert" do
   end
 
   describe 'confict handling' do
-    let!(:existing_user_id) { SQL.insert :users, {first_name: "foo", last_name: "bar"} }
+    let!(:existing_user_id) { SQL.insert :users, { first_name: "foo", last_name: "bar" } }
     let!(:total_users) { SQL.ask "SELECT count(*) FROM users" }
-    
+
     context 'when called with on_conflict: :ignore' do
       it 'ignores the conflict and does not create a user' do
         # Try to insert using an existing primary key ...
-        result = SQL.insert :users, {id: existing_user_id, first_name: "foo", last_name: "bar"}, on_conflict: :ignore
+        result = SQL.insert :users, { id: existing_user_id, first_name: "foo", last_name: "bar" }, on_conflict: :ignore
         expect(result).to be_nil
 
         expect(SQL.ask("SELECT count(*) FROM users")).to eq(total_users)
       end
     end
-    
+
     context 'when called with on_conflict: :nothing' do
       it 'ignores the conflict and does not create a user' do
         # Try to insert using an existing primary key ...
-        result = SQL.insert :users, {id: existing_user_id, first_name: "foo", last_name: "bar"}, on_conflict: :nothing
+        result = SQL.insert :users, { id: existing_user_id, first_name: "foo", last_name: "bar" }, on_conflict: :nothing
         expect(result).to be_nil
 
         expect(SQL.ask("SELECT count(*) FROM users")).to eq(total_users)
@@ -59,7 +59,7 @@ describe "Simple::SQL.insert" do
       it 'raises an error and does not create a user' do
         # Try to insert using an existing primary key ...
         expect {
-          SQL.insert :users, {id: existing_user_id, first_name: "foo", last_name: "bar"}, on_conflict: nil
+          SQL.insert :users, { id: existing_user_id, first_name: "foo", last_name: "bar" }, on_conflict: nil
         }.to raise_error(PG::UniqueViolation)
 
         expect(SQL.ask("SELECT count(*) FROM users")).to eq(total_users)

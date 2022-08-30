@@ -5,7 +5,9 @@ describe "Simple::SQL::Connection::Scope#count_by" do
   let(:scope)                   { SQL.scope("SELECT * FROM users") }
 
   let(:all_role_ids)            { 1.upto(10).to_a }
-  let(:all_role_ids_w_squares)  { all_role_ids.map { |role_id| [role_id, role_id*role_id] } } 
+  # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
+  let(:all_role_ids_w_squares)  { all_role_ids.map { |role_id| [role_id, role_id * role_id] } }
+  # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
 
   before do
     # initially we have 10 users, one per role_id in the range 1 .. 10
@@ -21,7 +23,7 @@ describe "Simple::SQL::Connection::Scope#count_by" do
     end
 
     it "obeys where conditions" do
-      expect(scope.where("role_id < $1", 4).enumerate_groups("role_id")).to contain_exactly(1,2,3)
+      expect(scope.where("role_id < $1", 4).enumerate_groups("role_id")).to contain_exactly(1, 2, 3)
     end
 
     it "counts all groups by multiple columns" do
@@ -37,7 +39,7 @@ describe "Simple::SQL::Connection::Scope#count_by" do
     end
 
     it "counts all groups by multiple columns" do
-      expect(scope.where("role_id < $1", 4).count_by("role_id, role_id * role_id")).to include([1,1] => 4)
+      expect(scope.where("role_id < $1", 4).count_by("role_id, role_id * role_id")).to include([1, 1] => 4)
       expect(scope.where("role_id < $1", 4).count_by("role_id, role_id * role_id")).to include([2, 4] => 1)
       expect(scope.where("role_id < $1", 4).count_by("role_id, role_id * role_id").keys).to contain_exactly([1, 1], [2, 4], [3, 9])
     end
@@ -55,7 +57,7 @@ describe "Simple::SQL::Connection::Scope#count_by" do
     end
 
     it "counts all groups by multiple columns and conditions" do
-      expect(scope.where("role_id < $1", 4).count_by_estimate("role_id, role_id * role_id")).to include([1,1] => 4)
+      expect(scope.where("role_id < $1", 4).count_by_estimate("role_id, role_id * role_id")).to include([1, 1] => 4)
       expect(scope.where("role_id < $1", 4).count_by_estimate("role_id, role_id * role_id")).to include([2, 4] => 1)
       expect(scope.where("role_id < $1", 4).count_by_estimate("role_id, role_id * role_id").keys).to contain_exactly([1, 1], [2, 4], [3, 9])
     end

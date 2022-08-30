@@ -14,7 +14,7 @@ describe "Simple::SQL.lock" do
       expect { SQL.lock!(1, 2) }.to change { number_of_locks }.by(1)
     end
   end
-  
+
   it "locks with 1 int" do
     SQL.transaction do
       expect { SQL.lock!(1) }.to change { number_of_locks }.by(1)
@@ -27,7 +27,7 @@ describe "Simple::SQL.lock" do
       expect { SQL.lock!("foo") }.to change { number_of_locks }.by(1)
     end
   end
-  
+
   it "accepts a timeout value" do
     SQL.transaction do
       SQL.lock!("foo", timeout: 0.000)

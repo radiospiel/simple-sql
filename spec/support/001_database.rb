@@ -6,10 +6,10 @@ require "simple-sql"
 
 require "yaml"
 abc = if Psych::VERSION > '4.0'
-  YAML.load_file "config/database.yml" , aliases: true
-else
-  YAML.load_file "config/database.yml"
-end
+        YAML.load_file "config/database.yml", aliases: true
+      else
+        YAML.load_file "config/database.yml"
+      end
 
 ActiveRecord::Base.establish_connection(abc["test"])
 

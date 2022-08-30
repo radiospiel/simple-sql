@@ -101,7 +101,6 @@ describe "Simple::SQL::Result#preload" do
     end
   end
 
-
   describe ":into option" do
     it "creates a :struct for singular association" do
       users = SQL.all "SELECT * FROM users WHERE organization_id=$1", org1.id, into: :struct

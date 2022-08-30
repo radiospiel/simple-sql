@@ -2,17 +2,22 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 2.7
   Exclude:
-    - 'vendor/**/*.rb'
-    - 'spec/**/*'
-    - 'test/**/*'
+    - 'vendor/**/*'
     - 'bin/**/*'
     - 'scripts/*'
-    - 'tasks/release.rake'
     - '*.gemspec'
-    - 'Gemfile'
     - 'Rakefile'
+    - spec/support/003_factories.rb
 
-Metrics/LineLength:
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+Style/BlockDelimiters:
+  Exclude:
+    - spec/**/*
+
+Layout/LineLength:
   Max: 140
 
 Metrics/MethodLength:
@@ -102,4 +107,7 @@ Style/StringConcatenation:
   Enabled: false
 
 Style/RedundantAssignment:
+  Enabled: false
+
+Style/NumericLiterals:
   Enabled: false
