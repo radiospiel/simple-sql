@@ -49,8 +49,12 @@ jobs:
       - name: Install postgres client lib
         run: sudo apt-get install libpq-dev
 
-      - name: Create test DB
-        run: bundle exec rake test:prepare_db
+      - name: Show PostgreSQL server version
+        run: PGPASSWORD=${{ env.PG_PW }} psql -U ${{ env.PG_USER }} -h 127.0.0.1 -p ${{ env.PG_PORT }} -c 'SELECT version();'
+
+      - name: Create Test DB
+        run: |
+          PGPASSWORD=${{ env.PG_PW }} createdb -U ${{ env.PG_USER }} -h 127.0.0.1 -p ${{ env.PG_PORT }} simple-sql-test
 
       - name: Install gem dependencies
         run: bundle install --jobs 4 --retry 3
