@@ -31,6 +31,9 @@ jobs:
           - activerecord: ">= 5, < 6"
             ruby: 3.1
             pg: "~> 0.2"
+          - activerecord: ">= 5, < 6"
+            ruby: 3.1
+            pg: "~> 1.4"
           - activerecord: ">= 6, < 7"
             ruby: 3.1
             pg: "~> 0.2"

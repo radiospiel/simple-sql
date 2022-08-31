@@ -56,7 +56,7 @@ module Simple::SQL::Config
     require "yaml"
     opts = {}
     opts[:aliases] = true if Psych::VERSION >= '4.0'
-    database_config = YAML.load_file(path, opts)
+    database_config = YAML.load_file(path, **opts)
     env ||= ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||
