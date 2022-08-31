@@ -17,13 +17,11 @@ end
 threads = []
 100.times do
   threads << Thread.new do
-    begin
-      Simple::SQL.connect!
-      p Simple::SQL.ask "SELECT 1"
-      print_number_of_connections
-    ensure
-      Simple::SQL.disconnect!
-    end
+    Simple::SQL.connect!
+    p Simple::SQL.ask "SELECT 1"
+    print_number_of_connections
+  ensure
+    Simple::SQL.disconnect!
   end
 end
 

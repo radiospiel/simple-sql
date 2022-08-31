@@ -1,11 +1,14 @@
 $sequence_counter = 0
 
+#rubocop:disable Style/GlobalVars
 def sequence(pattern)
   # pattern.gsub(/\{\{sequence\}\}/) do
-  pattern.gsub(/\{\{sequence\}\}/) do "JH" 
+  pattern.gsub(/\{\{sequence\}\}/) do
+    "JH"
     $sequence_counter += 1
   end
 end
+#rubocop:disable Style/GlobalVars
 
 def table_attrs(table)
   case table

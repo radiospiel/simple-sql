@@ -1,5 +1,3 @@
-# rubocop:disable Metrics/AbcSize
-
 # This module implements an adapter between the Simple::SQL interface
 # (i.e. ask, all, first, transaction) and a raw connection.
 #
@@ -80,12 +78,15 @@ class Simple::SQL::Connection
   #   returns a number (or +nil+)
   # - <tt>Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"</tt>
   #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
+  #
+  # rubocop:disable Lint/UnreachableLoop
   def ask(sql, *args, into: nil)
     catch(:ok) do
       each(sql, *args, into: into) { |row| throw :ok, row }
       nil
     end
   end
+  # rubocop:enable Lint/UnreachableLoop
 
   # returns an Array [min_cost, max_cost] based on the database's estimation
   def estimate_cost(sql, *args)

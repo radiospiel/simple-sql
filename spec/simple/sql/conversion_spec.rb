@@ -27,8 +27,8 @@ describe "Simple::SQL conversions" do
     end
 
     it "parses JSON as expected" do
-      expects({"a"=>1, "b"=>2}, 'SELECT \'{"a":1,"b":2}\'::json')
-      expects({"a"=>1, "b"=>2}, 'SELECT \'{"a":1,"b":2}\'::jsonb')
+      expects({ "a" => 1, "b" => 2 }, 'SELECT \'{"a":1,"b":2}\'::json')
+      expects({ "a" => 1, "b" => 2 }, 'SELECT \'{"a":1,"b":2}\'::jsonb')
     end
 
     it "converts double precision" do
@@ -44,14 +44,14 @@ describe "Simple::SQL conversions" do
       expects({ a: "1", b: "3" }, "SELECT 'a=>1,b=>3'::hstore")
     end
   end
-  
+
   describe "arra conversions" do
     it "works with strings" do
-      expects  [ "foo", "bar" ], 'SELECT $1::varchar[]', [ "foo", "bar" ]
+      expects  %w[foo bar], 'SELECT $1::varchar[]', %w[foo bar]
 
       # test escaping
-      expects  [ "foo", "foo'bar\"baz" ], 'SELECT $1::varchar[]', [ "foo", "foo'bar\"baz" ]
-      expects  [ ], 'SELECT $1::varchar[]', []
+      expects  ["foo", "foo'bar\"baz"], 'SELECT $1::varchar[]', ["foo", "foo'bar\"baz"]
+      expects  [], 'SELECT $1::varchar[]', []
     end
   end
 end

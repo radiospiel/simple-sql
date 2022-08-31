@@ -1,6 +1,4 @@
 # rubocop:disable Metrics/AbcSize
-# rubocop:disable Metrics/LineLength
-
 class Simple::SQL::Connection
   #
   # - table_name - the name of the table
@@ -37,6 +35,7 @@ class Simple::SQL::Connection
     # - table_name - the name of the table
     # - columns - name of columns, as Array[String] or Array[Symbol]
     #
+    # rubocop:disable Layout/LineLength
     def initialize(connection, table_name, columns, on_conflict, into)
       expect! on_conflict => CONFICT_HANDLING.keys
       raise ArgumentError, "Cannot insert a record without attributes" if columns.empty?
@@ -61,6 +60,7 @@ class Simple::SQL::Connection
 
       @sql = "INSERT INTO #{table_name} (#{cols.join(',')}) VALUES(#{vals.join(',')}) #{CONFICT_HANDLING[on_conflict]} RETURNING #{returning}"
     end
+    # rubocop:enable Layout/LineLength
 
     def insert(records:)
       @connection.transaction do
@@ -89,6 +89,7 @@ class Simple::SQL::Connection
 
     def json_encode(value)
       return value unless value.is_a?(Hash) || value.is_a?(Array)
+
       JSON.generate(value)
     end
   end

@@ -9,12 +9,12 @@ describe "Simple::SQL.locked" do
     expect(one).to eq(1)
   end
 
+  # rubocop:disable Lint/SuppressedException
   xit 'releases the lock after an exception' do # pending: "This code was manually tested"
-    begin
-      Simple::SQL.locked(4711) do
-        raise "HU"
-      end
-    rescue
+    Simple::SQL.locked(4711) do
+      raise "HU"
     end
+  rescue StandardError
   end
+  # rubocop:enable Lint/SuppressedException
 end

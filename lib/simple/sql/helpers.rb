@@ -1,9 +1,9 @@
 module ::Simple::SQL::Helpers
 end
 
-require_relative "helpers/decoder.rb"
-require_relative "helpers/encoder.rb"
-require_relative "helpers/row_converter.rb"
+require_relative 'helpers/decoder'
+require_relative 'helpers/encoder'
+require_relative 'helpers/row_converter'
 
 module ::Simple::SQL::Helpers
   extend self

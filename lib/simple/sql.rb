@@ -1,5 +1,3 @@
-# rubocop:disable Naming/UncommunicativeMethodParamName
-
 require "forwardable"
 require "logger"
 require "expectation"

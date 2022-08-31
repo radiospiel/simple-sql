@@ -24,7 +24,7 @@ describe "Simple::SQL.duplicate" do
   end
 
   it "duplicates many users" do
-    dupe_ids = SQL.duplicate "users", (source_ids + [ -10 ])
+    dupe_ids = SQL.duplicate "users", (source_ids + [-10])
 
     expect(dupe_ids.length).to eq(2)
     expect(SQL.ask("SELECT COUNT(*) FROM users")).to eq(2 + USER_COUNT)
@@ -41,4 +41,3 @@ describe "Simple::SQL.duplicate" do
     expect(dupe_timestamp).to be > source_timestamp
   end
 end
-

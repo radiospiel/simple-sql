@@ -72,6 +72,7 @@ class Simple::SQL::Connection::Scope
 
   public
 
+  # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
   def count_by_estimate(sql_fragment)
     expect! sql_fragment => String
 

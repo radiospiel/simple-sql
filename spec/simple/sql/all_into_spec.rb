@@ -30,11 +30,11 @@ describe "Simple::SQL.ask into: :struct" do
       expect(r1.class.object_id).to eq(r2.class.object_id)
     end
   end
-  
+
   describe "into: Hash" do
     it "calls the database" do
       r = SQL.ask("SELECT COUNT(*) AS count FROM users", into: Hash)
-      expect(r).to eq({count: 2}) 
+      expect(r).to eq({ count: 2 })
     end
 
     it "returns nil when there is no match" do
@@ -42,7 +42,7 @@ describe "Simple::SQL.ask into: :struct" do
       expect(r).to be_nil
     end
   end
-  
+
   describe "into: OpenStruct" do
     it "returns a OpenStruct with into: OpenStruct" do
       r = SQL.ask("SELECT COUNT(*) AS count FROM users", into: OpenStruct)

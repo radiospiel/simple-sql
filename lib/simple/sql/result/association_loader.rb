@@ -2,7 +2,6 @@
 # rubocop:disable Metrics/MethodLength
 # rubocop:disable Metrics/ParameterLists
 # rubocop:disable Style/GuardClause
-# rubocop:disable Naming/UncommunicativeMethodParamName
 
 require "active_support/core_ext/string/inflections"
 
@@ -119,13 +118,13 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     belonging_column  = relation.belonging_column.to_sym
     having_column     = relation.having_column.to_sym
 
-    host_ids  = H.pluck(records, having_column).uniq.compact
+    host_ids = H.pluck(records, having_column).uniq.compact
 
     scope     = connection.scope(table: relation.belonging_table)
     scope     = scope.where(belonging_column => host_ids)
     scope     = scope.order_by(order_by) if order_by
 
-    recs      = connection.all(scope, into: Hash)
+    recs = connection.all(scope, into: Hash)
 
     if as.to_s.singularize == as.to_s
       recs_by_id = H.by_key(recs, belonging_column) # has_one

@@ -1,16 +1,23 @@
 AllCops:
-  TargetRubyVersion: 2.3
+  NewCops: enable
+  TargetRubyVersion: 2.7
   Exclude:
-    - 'spec/**/*'
-    - 'test/**/*'
+    - 'vendor/**/*'
     - 'bin/**/*'
     - 'scripts/*'
-    - 'tasks/release.rake'
     - '*.gemspec'
-    - 'Gemfile'
     - 'Rakefile'
+    - spec/support/003_factories.rb
 
-Metrics/LineLength:
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+Style/BlockDelimiters:
+  Exclude:
+    - spec/**/*
+
+Layout/LineLength:
   Max: 140
 
 Metrics/MethodLength:
@@ -20,8 +27,7 @@ Style/SpecialGlobalVars:
   Enabled: false
 
 Style/StringLiterals:
-  EnforcedStyle: double_quotes
-  ConsistentQuotesInMultiline: false
+  Enabled: false
 
 Style/ClassAndModuleChildren:
   Enabled: false
@@ -76,6 +82,32 @@ Style/PerlBackrefs:
 
 Style/TrailingUnderscoreVariable:
   Enabled: false
-  
+
 Style/StderrPuts:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Style/GlobalStdStream:
+  Enabled: false
+
+Lint/MissingSuper:
+  Enabled: false
+
+Naming/FileName:
+  Exclude:
+    - lib/simple-sql.rb
+    - config/console-init.rb
+
+Layout/HashAlignment:
+  Enabled: false
+
+Style/StringConcatenation:
+  Enabled: false
+
+Style/RedundantAssignment:
+  Enabled: false
+
+Style/NumericLiterals:
   Enabled: false

@@ -5,7 +5,24 @@ jobs:
   rspec-test:
     name: Rspec suite
     runs-on: ubuntu-latest
+    services:
+      # Docker services, use images from Docker hub
+      # Using dockers health-check to wait for services to start,
+      # see https://ryaneschinger.com/blog/using-docker-native-health-checks/
+      postgres:
+        image: postgres:12.5
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 15
     strategy:
+      fail-fast: false
       matrix:
         ruby: [2.7, 3.1]
         activerecord: [">= 5, < 6", ">= 6, < 7", ">= 7, < 7.1"]
@@ -44,6 +61,13 @@ jobs:
 
       - name: Install postgres client lib
         run: sudo apt-get install libpq-dev
+
+      - name: Show PostgreSQL server version
+        run: PGPASSWORD=${{ env.PG_PW }} psql -U ${{ env.PG_USER }} -h 127.0.0.1 -p ${{ env.PG_PORT }} -c 'SELECT version();'
+
+      - name: Create Test DB
+        run: |
+          PGPASSWORD=${{ env.PG_PW }} createdb -U ${{ env.PG_USER }} -h 127.0.0.1 -p ${{ env.PG_PORT }} simple-sql-test
 
       - name: Install gem dependencies
         run: bundle install --jobs 4 --retry 3

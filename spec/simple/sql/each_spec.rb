@@ -12,7 +12,7 @@ describe "Simple::SQL.each" do
   def generate_users!
     1.upto(USER_COUNT).map { create(:user) }
   end
-  
+
   def each!(sql, into: nil)
     @received = nil
     SQL.each(sql, into: into) do |id|
@@ -29,7 +29,7 @@ describe "Simple::SQL.each" do
       it "receives rows as arrays" do
         each! "SELECT id, id FROM users ORDER BY id"
 
-        expect(received).to eq(1.upto(USER_COUNT).map { |i| [ i,i ]})
+        expect(received).to eq(1.upto(USER_COUNT).map { |i| [i, i] })
       end
 
       it "receives single item row as individual objects" do
@@ -46,14 +46,14 @@ describe "Simple::SQL.each" do
       end
     end
   end
-  
+
   describe "each into: <something>" do
     before { generate_users! }
 
     it "receives rows as Hashes" do
       each! "SELECT id, id AS dupe FROM users ORDER BY id", into: Hash
 
-      expect(received).to eq(1.upto(USER_COUNT).map { |i| { id: i, dupe: i }})
+      expect(received).to eq(1.upto(USER_COUNT).map { |i| { id: i, dupe: i } })
     end
 
     it "receives rows as immutable" do

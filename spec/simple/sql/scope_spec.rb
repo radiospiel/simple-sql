@@ -127,11 +127,11 @@ describe "Simple::SQL::Connection::Scope" do
       end
 
       it "runs with SQL.ask" do
-        expect(SQL.ask(scope)).to eq([1,2])
+        expect(SQL.ask(scope)).to eq([1, 2])
       end
 
       it "runs with SQL.all" do
-        expect(SQL.all(scope)).to eq([[1,2], [1,2]])
+        expect(SQL.all(scope)).to eq([[1, 2], [1, 2]])
       end
     end
 
@@ -188,7 +188,7 @@ describe "Simple::SQL::Connection::Scope" do
         expect(ids_matching(metadata: { "uid" => 1 })).to contain_exactly(1)
 
         # match against array
-        expect(ids_matching(metadata: { "uid" => [] })).to contain_exactly()
+        expect(ids_matching(metadata: { "uid" => [] })).to contain_exactly
         expect(ids_matching(metadata: { "uid" => [1, -1] })).to contain_exactly(1)
         expect(ids_matching(metadata: { "uid" => [1, 2] })).to contain_exactly(1, 2)
 
@@ -196,9 +196,9 @@ describe "Simple::SQL::Connection::Scope" do
         expect(ids_matching(metadata: { "uid" => [1, "-1"] })).to contain_exactly(1)
 
         # match against multiple conditions
-        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => "foo" })).to contain_exactly()
-        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => ["foo", "user"] })).to contain_exactly(1)
-        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => [] })).to contain_exactly()
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => "foo" })).to contain_exactly
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => %w[foo user] })).to contain_exactly(1)
+        expect(ids_matching(metadata: { "uid" => [1, "-1"], "type" => [] })).to contain_exactly
       end
     end
   end
@@ -206,12 +206,12 @@ describe "Simple::SQL::Connection::Scope" do
   context "Building with Hash" do
     it "runs with SQL.ask" do
       scope = SQL.scope table: "users", select: "1, 2", where: "id >= 0"
-      expect(SQL.all(scope)).to eq([[1,2], [1,2]])
+      expect(SQL.all(scope)).to eq([[1, 2], [1, 2]])
 
-      scope = SQL.scope table: "users", select: [1,3,4], where: "id >= 0"
-      expect(SQL.all(scope)).to eq([[1,3,4], [1,3,4]])
+      scope = SQL.scope table: "users", select: [1, 3, 4], where: "id >= 0"
+      expect(SQL.all(scope)).to eq([[1, 3, 4], [1, 3, 4]])
     end
-    
+
     it "raises an error with missing or invalid attributes" do
       expect { SQL.scope table: "users", limit: 1 }.to raise_error(ArgumentError)
       expect { SQL.scope select: "*" }.to raise_error(ArgumentError)
