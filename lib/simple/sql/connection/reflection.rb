@@ -121,7 +121,7 @@ class Simple::SQL::Connection
 
     def records_by_attr(records, attr)
       records.inject({}) do |hsh, record|
-        record.reject! { |_k, v| v.nil? }
+        record.compact!
         hsh.update record[attr] => OpenStruct.new(record)
       end
     end

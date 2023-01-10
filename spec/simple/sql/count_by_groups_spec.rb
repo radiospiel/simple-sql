@@ -5,10 +5,7 @@ describe "Simple::SQL::Connection::Scope#count_by" do
   let(:scope)                   { SQL.scope("SELECT * FROM users") }
 
   let(:all_role_ids)            { 1.upto(10).to_a }
-  # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
   let(:all_role_ids_w_squares)  { all_role_ids.map { |role_id| [role_id, role_id * role_id] } }
-  # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
-
   before do
     # initially we have 10 users, one per role_id in the range 1 .. 10
     # This adds another 3 users with role_id of 1.

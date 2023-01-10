@@ -1,11 +1,11 @@
 source 'https://rubygems.org'
 
 gem 'pry-byebug'
-gem 'rubocop', '~> 0.93.1'
+gem 'rubocop'
 
 gem 'rake', '>= 12.3.3'
-gem 'rspec', '~> 3.7'
-gem 'simplecov', '~> 0'
+gem 'rspec', '~> 3'
+gem 'simplecov'
 
 # Specify your gem's dependencies in {gemname}.gemspec
 gemspec

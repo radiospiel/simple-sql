@@ -141,7 +141,7 @@ class Simple::SQL::Connection::Scope
         GROUP BY #{sql_fragment}
       SQL
 
-      counts.update Hash[sparse_counts]
+      counts.update sparse_counts.to_h
     end
 
     counts

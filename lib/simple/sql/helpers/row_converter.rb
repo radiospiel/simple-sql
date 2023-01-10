@@ -27,7 +27,7 @@ module Simple::SQL::Helpers::RowConverter
     ary.first
   end
 
-  class TypeConverter #:nodoc:
+  class TypeConverter # :nodoc:
     def initialize(type:, associations:)
       @type         = type
       @associations = associations
@@ -57,7 +57,7 @@ module Simple::SQL::Helpers::RowConverter
     end
   end
 
-  class ImmutableConverter < TypeConverter #:nodoc:
+  class ImmutableConverter < TypeConverter # :nodoc:
     Immutable = ::Simple::Immutable
 
     def build_row_in_target_type(hsh)
@@ -65,7 +65,7 @@ module Simple::SQL::Helpers::RowConverter
     end
   end
 
-  class TypeConverter2 < TypeConverter #:nodoc:
+  class TypeConverter2 < TypeConverter # :nodoc:
     def initialize(type:, associations:, fq_table_name:)
       super(type: type, associations: associations)
       @fq_table_name = fq_table_name

@@ -8,16 +8,16 @@ module Simple::SQL::Helpers::Decoder
   def decode_value(type, s)
     case type
     when :unknown                       then s
-    when :"character varying"           then s
+    when :'character varying'           then s
     when :integer                       then Integer(s)
     when :bigint                        then Integer(s)
     when :numeric                       then Float(s)
-    when :"double precision"            then Float(s)
+    when :'double precision'            then Float(s)
     when :'integer[]'                   then s.scan(/-?\d+/).map { |part| Integer(part) }
-    when :"character varying[]"         then parse_pg_array(s)
-    when :"text[]"                      then parse_pg_array(s)
-    when :"timestamp without time zone" then decode_time(s)
-    when :"timestamp with time zone"    then decode_time(s)
+    when :'character varying[]'         then parse_pg_array(s)
+    when :'text[]'                      then parse_pg_array(s)
+    when :'timestamp without time zone' then decode_time(s)
+    when :'timestamp with time zone'    then decode_time(s)
     when :hstore                        then HStore.parse(s)
     when :json                          then ::JSON.parse(s)
     when :jsonb                         then ::JSON.parse(s)
@@ -73,7 +73,8 @@ module Simple::SQL::Helpers::Decoder
   def self.new(result, into:, column_info:)
     if into == Hash           then HashRecord.new(column_info)
     elsif result.nfields == 1 then SingleColumn.new(column_info)
-    else                           MultiColumns.new(column_info)
+    else
+      MultiColumns.new(column_info)
     end
   end
 
@@ -112,7 +113,7 @@ module Simple::SQL::Helpers::Decoder
 
     def decode(row)
       decoded_row = super(row)
-      Hash[@field_names.zip(decoded_row)]
+      @field_names.zip(decoded_row).to_h
     end
   end
 end

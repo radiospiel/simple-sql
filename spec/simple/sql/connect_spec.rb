@@ -33,7 +33,7 @@ describe "Connections" do
     end
 
     describe 'explizit connections' do
-      let(:db) { Simple::SQL.connect(::Simple::SQL::Config.determine_url) }
+      let(:db) { Simple::SQL.connect(Simple::SQL::Config.determine_url) }
 
       it 'runs in separate transactions' do
         User.transaction do
@@ -56,7 +56,7 @@ describe "Connections" do
 
   describe "Simple::SQL.disconnect!" do
     let(:default_db) { Simple::SQL.connect }
-    let(:db) { Simple::SQL.connect(::Simple::SQL::Config.determine_url) }
+    let(:db) { Simple::SQL.connect(Simple::SQL::Config.determine_url) }
 
     it 'disconnects everything' do
       Simple::SQL.disconnect!

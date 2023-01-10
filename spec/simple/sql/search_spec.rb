@@ -1,7 +1,6 @@
 require "spec_helper"
 
 describe "Simple::SQL.search" do
-  # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
   let!(:users) do
     1.upto(10).map do |i|
       metadata = { user_id_squared: i * i, id_string: "user-#{i}", even_str: i.even? ? "yes" : "no" }
@@ -10,8 +9,6 @@ describe "Simple::SQL.search" do
       create(:user, role_id: i, metadata: metadata)
     end
   end
-  # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
-
   let(:scope) do
     scope = SQL.scope("SELECT * FROM users")
     scope.table_name = "users"

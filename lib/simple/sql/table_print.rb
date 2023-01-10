@@ -66,7 +66,7 @@ module Simple::SQL::TablePrint
   def distribute_column_widths(column_widths, total_chars, column_count, title_row)
     # caluclate available width: this is the number of characters available in
     # total, reduced by the characters "wasted" for row separators.
-    available_chars = total_chars - (column_count - 1) * ROW_SEPARATOR.length
+    available_chars = total_chars - ((column_count - 1) * ROW_SEPARATOR.length)
 
     return column_widths if available_chars <= 0
 
@@ -102,7 +102,7 @@ module Simple::SQL::TablePrint
       if available_space > 0
 
         result = result.zip(column_widths).map do |r, cw|
-          r + (cw - r) * available_space / unassigned_widths
+          r + ((cw - r) * available_space / unassigned_widths)
         end
       end
     end

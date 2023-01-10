@@ -3,7 +3,6 @@ rdoc
 pkg
 log/*.log
 .rspec.data
-Gemfile.lock
 .rake_t_cache
 .rspec.status
 .DS_Store

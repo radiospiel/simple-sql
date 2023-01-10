@@ -1,5 +1,7 @@
+# rubocop:disable Lint/EmptyClass
 class Simple::SQL::Connection
 end
+# rubocop:enable Lint/EmptyClass
 
 require "pg"
 require "active_record"
@@ -27,20 +29,17 @@ class Simple::SQL::Connection
   end
 
   def self.connection_class(database_url)
-    if database_url.nil?
-      ::ActiveRecord::Base
-    elsif database_url.is_a?(String)
-      ConnectionManager.connection_class(database_url)
-    elsif ::ActiveRecord::Base.connected?
-      # database_url is :auto, and we are connected. This happens, for example,
-      # within a rails controller. IT IS IMPORTANT NOT TO CONNECT AGAINST THE
-      # ::Simple::SQL::Config.determine_url! Only so we can make sure that
-      # simple-sql and ActiveRecord can be mixed freely together, i.e. they are
-      # sharing the same connection.
-      ::ActiveRecord::Base
-    else
-      ConnectionManager.connection_class(::Simple::SQL::Config.determine_url)
-    end
+    return ::ActiveRecord::Base if database_url.nil?
+    return ConnectionManager.connection_class(database_url) if database_url.is_a?(String)
+
+    # database_url is :auto, and we are connected. This happens, for example,
+    # within a rails controller. IT IS IMPORTANT NOT TO CONNECT AGAINST THE
+    # ::Simple::SQL::Config.determine_url! Only so we can make sure that
+    # simple-sql and ActiveRecord can be mixed freely together, i.e. they are
+    # sharing the same connection.
+    return ::ActiveRecord::Base if ::ActiveRecord::Base.connected?
+
+    ConnectionManager.connection_class(::Simple::SQL::Config.determine_url)
   end
 
   def initialize(connection_class)

@@ -102,7 +102,7 @@ module Simple::SQL::Connection::Scope::Search
     # collect keys and value_arrays for each filter
     filters.each do |key, value|
       keys << key
-      # note that resolve_dynamic_matches always returns an array.
+      # NOTE: that resolve_dynamic_matches always returns an array.
       value_arrays << resolve_dynamic_matches(value, key: key)
     end
 
@@ -129,7 +129,7 @@ module Simple::SQL::Connection::Scope::Search
     # convert each individual combination in the product into a JSONB search
     # condition.
     sql_fragment_parts = product.map do |values|
-      match = Hash[keys.zip(values)]
+      match = keys.zip(values).to_h
       "#{dynamic_column} @> '#{::JSON.generate(match)}'::jsonb"
     end
 
