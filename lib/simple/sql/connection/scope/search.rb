@@ -57,7 +57,7 @@ module Simple::SQL::Connection::Scope::Search
     return scope if filters.empty?
 
     filters.inject(scope) do |scp, (k, v)|
-      scp.where k => resolve_static_matches(v, column_type: column_types.fetch(k))
+      scp.where({ k => resolve_static_matches(v, column_type: column_types.fetch(k)) })
     end
   end
 

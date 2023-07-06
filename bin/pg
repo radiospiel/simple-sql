@@ -3,7 +3,13 @@ require 'yaml'
 
 env = ENV["POSTJOB_ENV"] || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
-configs = YAML.load_file "config/database.yml"
+path = "config/database.yml"
+configs = if Psych::VERSION > '4.0'
+  YAML.safe_load(File.read(path), aliases: true)
+else
+  YAML.safe_load(File.read(path), [], [], true)
+end
+
 config = configs.fetch(env) { configs.fetch("defaults") }
 
 ENV["PGHOST"]     = config["host"]

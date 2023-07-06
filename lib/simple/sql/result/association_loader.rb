@@ -92,8 +92,8 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
 
     foreign_ids = H.pluck(records, belonging_column).uniq.compact
 
-    scope = connection.scope(table: relation.having_table)
-    scope = scope.where(having_column => foreign_ids)
+    scope = connection.scope({ table: relation.having_table })
+    scope = scope.where({ having_column => foreign_ids })
 
     recs = connection.all(scope, into: Hash)
     recs_by_id = H.by_key(recs, having_column)
@@ -122,7 +122,7 @@ module ::Simple::SQL::Result::AssociationLoader # :nodoc:
     host_ids  = H.pluck(records, having_column).uniq.compact
 
     scope     = connection.scope(table: relation.belonging_table)
-    scope     = scope.where(belonging_column => host_ids)
+    scope     = scope.where({ belonging_column => host_ids })
     scope     = scope.order_by(order_by) if order_by
 
     recs      = connection.all(scope, into: Hash)

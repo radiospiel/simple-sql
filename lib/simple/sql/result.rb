@@ -31,6 +31,7 @@ class ::Simple::SQL::Result < Array
   attr_reader :connection
 
   def initialize(connection, records) # :nodoc:
+    super()
     @connection = connection
     replace(records)
   end

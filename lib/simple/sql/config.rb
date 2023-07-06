@@ -55,7 +55,12 @@ module Simple::SQL::Config
 
   def load_activerecord_base_configuration(path:, env:)
     require "yaml"
-    database_config = YAML.load_file(path)
+    database_config = if Psych::VERSION > '4.0'
+      YAML.safe_load(File.read(path), aliases: true)
+    else
+      YAML.safe_load(File.read(path), [], [], true)
+    end
+    
     env ||= ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||

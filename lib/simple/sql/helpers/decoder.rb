@@ -7,6 +7,7 @@ module Simple::SQL::Helpers::Decoder
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/CyclomaticComplexity
   # rubocop:disable Naming/UncommunicativeMethodParamName
+  # rubocop:disable Style/MultipleComparison
   def decode_value(type, s)
     case type
     when :unknown                       then s
@@ -38,6 +39,7 @@ module Simple::SQL::Helpers::Decoder
 
   def decode_time(s)
     return s if s.is_a?(Time)
+
     ::Time.parse(s)
   end
 
@@ -73,6 +75,7 @@ end
 
 module Simple::SQL::Helpers::Decoder
   def self.new(result, into:, column_info:)
+    # rubocop:disable Lint/ElseLayout
     if into == Hash           then HashRecord.new(column_info)
     elsif result.nfields == 1 then SingleColumn.new(column_info)
     else                           MultiColumns.new(column_info)

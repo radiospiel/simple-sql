@@ -1,5 +1,7 @@
 # This file contains some monkey patches
 
+# rubocop:disable Lint/DuplicateMethods
+
 module Simple::SQL::MonkeyPatches
   def self.warn(msg)
     return if ENV["SIMPLE_SQL_SILENCE"] == "1"
@@ -29,6 +31,7 @@ when /^5.2/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
+
       Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end
@@ -45,6 +48,7 @@ when /^6/
   class ActiveRecord::ConnectionAdapters::ConnectionPool::Reaper
     def run
       return unless frequency && frequency > 0
+
       Simple::SQL::MonkeyPatches.warn "simple-sql disables reapers for all connection pools, see https://github.com/rails/rails/issues/33600"
     end
   end

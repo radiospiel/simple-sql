@@ -23,10 +23,8 @@ class Simple::SQL::Connection::Scope
   # scope = scope.where(metadata: { uid: 1 }, jsonb: false)
   #
   def where(sql_fragment, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
-    duplicate.send(:where!, sql_fragment, arg, placeholder: placeholder, jsonb: jsonb)
+    duplicate.where!(sql_fragment, arg, placeholder: placeholder, jsonb: jsonb)
   end
-
-  private
 
   def where!(first_arg, arg = :__dummy__no__arg, placeholder: "?", jsonb: true)
     if arg != :__dummy__no__arg
@@ -39,6 +37,8 @@ class Simple::SQL::Connection::Scope
 
     self
   end
+
+  private
 
   def where_sql!(sql_fragment)
     @where << sql_fragment

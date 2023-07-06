@@ -7,7 +7,7 @@ describe "Simple::SQL.insert" do
     let!(:initial_ids) { SQL.all("SELECT id FROM users") }
 
     it "inserts a single user" do
-      id = SQL.insert :users, first_name: "foo", last_name: "bar"
+      id = SQL.insert :users, { first_name: "foo", last_name: "bar" }
       expect(id).to be_a(Integer)
       expect(initial_ids).not_to include(id)
       expect(SQL.ask("SELECT count(*) FROM users")).to eq(USER_COUNT+1)
@@ -19,7 +19,7 @@ describe "Simple::SQL.insert" do
     end
 
     it "returns the id" do
-      id = SQL.insert :users, first_name: "foo", last_name: "bar"
+      id = SQL.insert :users, { first_name: "foo", last_name: "bar" }
       expect(id).to be_a(Integer)
       expect(initial_ids).not_to include(id)
     end

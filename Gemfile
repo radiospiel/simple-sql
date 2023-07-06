@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'pry-byebug'
-gem 'rubocop', '~> 0.57.2'
+gem 'rubocop', '~> 1.54.1'
 
 gem 'rake', '>= 12.3.3'
 gem 'rspec', '~> 3.7'
