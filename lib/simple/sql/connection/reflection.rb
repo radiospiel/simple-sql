@@ -1,5 +1,7 @@
 # rubocop:disable Metrics/ClassLength
 
+require "ostruct"
+
 class Simple::SQL::Connection
   def reset_reflection
     @reflection = nil

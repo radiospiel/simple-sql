@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   # executables are used for development purposes only
   gem.executables   = []
 
-  # gem.required_ruby_version = '~> 2.3'
+  gem.required_ruby_version = '~> 3.3'
 
   gem.add_dependency 'pg_array_parser', '~> 0', '>= 0.0.9'
   gem.add_dependency 'expectation', '~> 1'

@@ -1,3 +1,5 @@
+require "logger"
+
 # connect to the database and setup the schema
 require "active_record"
 
@@ -19,7 +21,7 @@ if ActiveRecord::Base.respond_to?(:raise_in_transactional_callbacks=)
   ActiveRecord::Base.raise_in_transactional_callbacks = true
 end
 
-ActiveRecord::Base.logger = Logger.new("log/test.log")
+ActiveRecord::Base.logger = ::Logger.new("log/test.log")
 
 ActiveRecord::Schema.define do
   self.verbose = false
