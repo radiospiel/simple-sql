@@ -81,6 +81,7 @@ class Simple::SQL::Connection
   # - <tt>Simple::SQL.ask "SELECT id, email FROM users WHERE email=$?", "foo@local"</tt>
   #   returns an array <tt>[ <id>, <email> ]</tt> (or +nil+)
   def ask(sql, *args, into: nil)
+    # rubocop:disable Lint/UnreachableLoop
     catch(:ok) do
       each(sql, *args, into: into) { |row| throw :ok, row }
       nil

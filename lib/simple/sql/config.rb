@@ -16,7 +16,7 @@ module Simple::SQL::Config
 
     config = {
       dbname: uri.path.sub(%r{^/}, ""),
-      host:   uri.hostname
+      host: uri.hostname
     }
     config[:port] = uri.port if uri.port
     config[:user] = uri.user if uri.user
@@ -56,11 +56,11 @@ module Simple::SQL::Config
   def load_activerecord_base_configuration(path:, env:)
     require "yaml"
     database_config = if Psych::VERSION > '4.0'
-      YAML.safe_load(File.read(path), aliases: true)
-    else
-      YAML.safe_load(File.read(path), [], [], true)
-    end
-    
+                        YAML.safe_load(File.read(path), aliases: true)
+                      else
+                        YAML.safe_load(File.read(path), [], [], true)
+                      end
+
     env ||= ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
 
     database_config[env] ||

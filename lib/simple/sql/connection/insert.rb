@@ -28,9 +28,9 @@ class Simple::SQL::Connection
 
   class Inserter
     CONFICT_HANDLING = {
-      nil      => "",
+      nil => "",
       :nothing => "ON CONFLICT DO NOTHING",
-      :ignore  => "ON CONFLICT DO NOTHING"
+      :ignore => "ON CONFLICT DO NOTHING"
     }
 
     #
@@ -89,6 +89,7 @@ class Simple::SQL::Connection
 
     def json_encode(value)
       return value unless value.is_a?(Hash) || value.is_a?(Array)
+
       JSON.generate(value)
     end
   end

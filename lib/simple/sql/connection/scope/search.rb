@@ -78,6 +78,7 @@ module Simple::SQL::Connection::Scope::Search
   def empty_filter?(_key, value)
     return true if value.nil?
     return true if value.is_a?(Enumerable) && value.empty? # i.e. Hash, Array
+
     false
   end
 
